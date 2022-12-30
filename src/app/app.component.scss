@@ -1,0 +1,11 @@
+.test-application {
+    .title {
+        h1 {
+            text-align: center;
+            background-color: var(--color-blue5);
+            color: var(--color-white);
+            margin: 0;
+            padding: 10px;
+        }
+    }
+}
