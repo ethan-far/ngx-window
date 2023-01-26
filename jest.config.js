@@ -15,7 +15,7 @@ module.exports = {
     testRunner: 'jest-jasmine2',
     globals: {
         'ts-jest': {
-            isolatedModules: true
+            esModuleInterop: true
         }
     }
 };
