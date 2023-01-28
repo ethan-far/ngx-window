@@ -8,4 +8,23 @@
             padding: 10px;
         }
     }
+
+    .main-navigation {
+        background-color: var(--color-blue4);
+
+        .link-list {
+            margin: 0;
+            padding: 10px;
+            list-style: none;
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+
+            li {
+                cursor: pointer;
+                color: white;
+
+            }
+        }
+    }
 }
