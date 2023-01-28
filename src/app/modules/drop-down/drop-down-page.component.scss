@@ -1,0 +1,45 @@
+.drop-down-page {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 20px;
+
+    .box {
+        width: 200px;
+        height: 200px;
+        border: 1px solid var(--color-blue5);
+        padding: 20px;
+        position: relative;
+        overflow: hidden;
+
+        &::before {
+            position: absolute;
+            color: var(--color-blue5);
+            text-align: center;
+            top: 0px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-50%);
+            background-color: var(--color-blue2);
+            padding: 10px;
+            content: attr(title);
+        }
+
+        &::after {
+            content: 'This is the content. Notice that the box has a hidden overflow. This content is clipped and so should the dropdown have been, but instead, the dropdown overflows nicely even when the overflow is set to hidden.';
+            position: absolute;
+            top: 0;
+            left: 0;
+            padding: 10px;
+            font-size: 22px;
+            z-index: -1;
+            color: rgb(0, 0, 0, 0.4);
+        }
+    }
+}
+
+.drop-down-content {
+    border: 1px solid black;
+    background-color: white;
+    padding: 5px;
+}

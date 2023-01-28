@@ -17,6 +17,10 @@
         "dist/ngx-window"
       ]
     },
+    "typeRoots": [
+      "node_modules/@types"
+    ],
+    "esModuleInterop": true,
     "experimentalDecorators": true,
     "moduleResolution": "node",
     "importHelpers": true,

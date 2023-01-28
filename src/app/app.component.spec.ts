@@ -1,7 +1,9 @@
 import { DebugElement } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
+import { RouterOutlet } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
+import { MockDirective } from 'ng-mocks';
 import { AppComponent } from './app.component';
 
 describe('AppComponent', () => {
@@ -54,6 +56,62 @@ describe('AppComponent', () => {
 
                         expect(headerElement.nativeElement.textContent).toEqual('ngx-window Test Application');
                     });
+                });
+            });
+
+            describe('<nav> element with', () => {
+                it('class "main-navigation"', () => {
+                    fixture.detectChanges();
+
+                    let navigationElement = element.query(By.css('nav.main-navigation'));
+
+                    expect(navigationElement !== null).toBeTruthy();
+                });
+
+                describe('<ol> element with', () => {
+                    it('class "link-list"', () => {
+                        fixture.detectChanges();
+
+                        let listElement = element.query(By.css('.main-navigation ol.link-list'));
+
+                        expect(listElement !== null).toBeTruthy();
+                    });
+
+                    describe('<li> element with', () => {
+                        it('class "drop-downs"', () => {
+                            fixture.detectChanges();
+
+                            let itemElement = element.query(By.css('.link-list li.drop-downs'));
+
+                            expect(itemElement !== null).toBeTruthy();
+                        });
+
+                        it('the expected text', () => {
+                            fixture.detectChanges();
+
+                            let itemElement = element.query(By.css('.drop-downs'));
+
+                            expect(itemElement.nativeElement.textContent).toEqual('Drop downs');
+                        });
+
+                        it('router link to the relevant page', () => {
+                            fixture.detectChanges();
+
+                            let itemElement = element.query(By.css('.drop-downs'));
+
+                            expect(itemElement.attributes['routerLink']).toEqual('/drop-downs');
+                        });
+                    });
+                });
+            });
+
+            describe('<router-outlet> component with', () => {
+                it('class "main-content"', () => {
+                    fixture.detectChanges();
+
+                    let routerOutletElement = element.query(By.css('router-outlet.main-content'));
+
+                    expect(routerOutletElement !== null).toBeTruthy();
                 });
             });
         });

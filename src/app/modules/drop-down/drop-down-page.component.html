@@ -1,0 +1,9 @@
+<div class="drop-down-page">
+    <div class="box simple" title="Simple">
+        <button class="simple-drop-down-button" (click)="onSimpleDropDownClick()" #simpleDropDownButton>Simple &#x25e2;</button>
+        <ngx-window class="simple-drop-down" [refElement]="simpleDropDownButton" [options]="simpleDropDownWindowOptions" [width]="200" [height]="250"
+            #simpleDropDown>
+            <div class="simple drop-down-content">This is a simple drop down with no content. Click outside to close.</div>
+        </ngx-window>
+    </div>
+</div>

@@ -1,6 +1,8 @@
 /* You can add global styles to this file, and also import other style files */
 :root {
+    --color-blue2: #cef;
     --color-blue3: #9cf;
+    --color-blue4: #6ae;
     --color-blue5: #38d;
 
     --color-white: #fff;
@@ -8,7 +10,7 @@
 
 body {
     margin: 0;
-    background-color: var(--color-blue3);
+    background-color: var(--color-blue2);
 }
 
 * {
