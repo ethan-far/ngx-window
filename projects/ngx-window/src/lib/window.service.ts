@@ -66,6 +66,7 @@ export class WindowService {
         this.close(windowId);
     }
 
+
     private findContainingWindowId(element: HTMLElement): number {
         let currElement: HTMLElement | null = element;
         let windowId = -1;
