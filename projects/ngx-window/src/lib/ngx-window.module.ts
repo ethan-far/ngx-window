@@ -1,6 +1,7 @@
 import { ApplicationRef, APP_BOOTSTRAP_LISTENER, Component, ComponentFactoryResolver, Injector, NgModule } from '@angular/core';
 import { installWindowContainer } from './bootstrap-listener';
 import { ElementPositionService } from './element-position.service';
+import { WindowCloserDirective } from './window-closer.directive';
 import { WindowContainerComponent } from './window-container.component';
 import { WindowComponent } from './window.component';
 import { WindowService } from './window.service';
@@ -20,10 +21,12 @@ import { WindowService } from './window.service';
     ],
     declarations: [
         WindowComponent,
-        WindowContainerComponent
+        WindowContainerComponent,
+        WindowCloserDirective
     ],
     exports: [
-        WindowComponent
+        WindowComponent,
+        WindowCloserDirective
     ],
     entryComponents: [
         WindowContainerComponent

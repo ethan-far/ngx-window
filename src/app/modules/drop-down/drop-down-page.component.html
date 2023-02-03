@@ -1,9 +1,22 @@
 <div class="drop-down-page">
     <div class="box simple" title="Simple">
-        <button class="simple-drop-down-button" (click)="onSimpleDropDownClick()" #simpleDropDownButton>Simple &#x25e2;</button>
+        <button class="simple-drop-down-button" [ngClass]="{ 'open': simpleDropDownWindowVisible }" (click)="onSimpleDropDownClick()"
+            #simpleDropDownButton>Simple</button>
         <ngx-window class="simple-drop-down" [refElement]="simpleDropDownButton" [options]="simpleDropDownWindowOptions" [width]="200" [height]="250"
-            #simpleDropDown>
+            (visibleChange)="onSimpleDropDownVisibleChange($event)" #simpleDropDown>
             <div class="simple drop-down-content">This is a simple drop down with no content. Click outside to close.</div>
+        </ngx-window>
+    </div>
+
+    <div class="box close-from-within" title="Close from within">
+        <button class="close-from-within-drop-down-button" [ngClass]="{ 'open': closeFromWithinDropDownWindowVisible }"
+            (click)="onCloseFromWithinDropDownClick()" #closeFromWithinDropDownButton>Close
+            from within</button>
+        <ngx-window class="close-from-within-drop-down" [refElement]="closeFromWithinDropDownButton" [options]="closeFromWithinDropDownWindowOptions"
+            [width]="200" [height]="250" (visibleChange)="onCloseFromWithinDropDownVisibleChange($event)" #closeFromWithinDropDown>
+            <div class="close-from-within drop-down-content">Click the button below to close the dropdown.
+                <button class="close-button" ngxWindowCloser (click)="onCloseWithinCloseButtonClick()">Close drop down</button>
+            </div>
         </ngx-window>
     </div>
 </div>
