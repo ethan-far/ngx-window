@@ -66,14 +66,6 @@ describe('WindowComponent', () => {
         hostElement = hostFixture.debugElement;
     });
 
-    describe('initializes', () => {
-        it('visibility to "false"', () => {
-            hostFixture.detectChanges();
-
-            expect(hostComponent.window.visible).toEqual(false);
-        });
-    });
-
     describe('on init', () => {
         it('registers the window', () => {
             const elementMock = document.createElement('span');
@@ -105,170 +97,54 @@ describe('WindowComponent', () => {
         });
     });
 
-    describe('open', () => {
-        it('changes visibility to "true"', () => {
+    describe('"open"', () => {
+        it('opens the window using the service', () => {
             hostFixture.detectChanges();
 
             hostComponent.window.open();
 
-            expect(hostComponent.window.visible).toEqual(true);
+            expect(windowServiceMock.open).toHaveBeenCalledWith(1234, jasmine.any(TemplateRef));
         });
+    });
 
-        it('notifies the visiblity has changed', () => {
-            jest.spyOn(hostComponent.window.visibleChange, 'emit');
+    describe('"close"', () => {
+        it('closes the window using the service', () => {
             hostFixture.detectChanges();
-
             hostComponent.window.open();
 
-            expect(hostComponent.windowVisible).toEqual(true);
-        });
+            hostComponent.window.close();
 
-        describe('opens the window', () => {
-            it('using the service', () => {
+            expect(windowServiceMock.close).toHaveBeenCalledWith(1234);
+        });
+    });
+
+    describe('"toggle"', () => {
+        describe('when closed', () => {
+            beforeEach(() => {
+                jest.spyOn(windowServiceMock, 'isOpen').mockReturnValue(false);
+            });
+
+            it('opens the window using the service', () => {
                 hostFixture.detectChanges();
 
-                hostComponent.window.open();
+                hostComponent.window.toggle();
 
                 expect(windowServiceMock.open).toHaveBeenCalledWith(1234, jasmine.any(TemplateRef));
             });
         });
 
-        describe('if already open does not', () => {
+        describe('when open', () => {
             beforeEach(() => {
-                jest.spyOn(hostComponent.window.visibleChange, 'emit');
-
-                hostFixture.detectChanges();
-                hostComponent.window.open();
-                hostComponent.windowVisible = undefined;
-
-                jest.resetAllMocks();
-
-                hostComponent.window.open();
+                jest.spyOn(windowServiceMock, 'isOpen').mockReturnValue(true);
             });
 
-            it('notify', () => {
-                expect(hostComponent.windowVisible).toBeUndefined();
-            });
-
-            it('open using the service', () => {
-                expect(windowServiceMock.open).not.toHaveBeenCalled();
-            });
-        });
-    });
-
-    describe('close', () => {
-        it('changes visibility to "false"', () => {
-            hostFixture.detectChanges();
-            hostComponent.window.open();
-
-            hostComponent.window.close();
-
-            expect(hostComponent.window.visible).toEqual(false);
-        });
-
-        it('notifies the visiblity has changed', () => {
-            jest.spyOn(hostComponent.window.visibleChange, 'emit');
-            hostFixture.detectChanges();
-            hostComponent.window.open();
-
-            hostComponent.window.close();
-
-            expect(hostComponent.windowVisible).toEqual(false);
-        });
-
-        describe('closes the window', () => {
-            it('using the service', () => {
+            it('closes the window using the service', () => {
                 hostFixture.detectChanges();
                 hostComponent.window.open();
 
-                hostComponent.window.close();
+                hostComponent.window.toggle();
 
                 expect(windowServiceMock.close).toHaveBeenCalledWith(1234);
-            });
-        });
-
-        describe('if already closed does not', () => {
-            beforeEach(() => {
-                jest.spyOn(hostComponent.window.visibleChange, 'emit');
-                hostFixture.detectChanges();
-                hostComponent.window.open();
-                hostComponent.window.close();
-                hostComponent.windowVisible = undefined;
-
-                jest.resetAllMocks();
-
-                hostComponent.window.close();
-            });
-
-            it('notify', () => {
-                expect(hostComponent.windowVisible).toBeUndefined();
-            });
-
-            it('close using the service', () => {
-                expect(windowServiceMock.close).not.toHaveBeenCalled();
-            });
-        });
-    });
-
-    describe('toggle', () => {
-        describe('when closed', () => {
-            it('changes visibility to "true"', () => {
-                hostFixture.detectChanges();
-
-                hostComponent.window.toggle();
-
-                expect(hostComponent.window.visible).toEqual(true);
-            });
-
-            it('notifies the visiblity has changed', () => {
-                jest.spyOn(hostComponent.window.visibleChange, 'emit');
-                hostFixture.detectChanges();
-
-                hostComponent.window.toggle();
-
-                expect(hostComponent.windowVisible).toEqual(true);
-            });
-
-            describe('opens the window', () => {
-                it('using the service', () => {
-                    hostFixture.detectChanges();
-
-                    hostComponent.window.toggle();
-
-                    expect(windowServiceMock.open).toHaveBeenCalledWith(1234, jasmine.any(TemplateRef));
-                });
-            });
-        });
-
-        describe('when open', () => {
-            it('changes visibility to "false"', () => {
-                hostFixture.detectChanges();
-                hostComponent.window.open();
-
-                hostComponent.window.toggle();
-
-                expect(hostComponent.window.visible).toEqual(false);
-            });
-
-            it('notifies the visiblity has changed', () => {
-                jest.spyOn(hostComponent.window.visibleChange, 'emit');
-                hostFixture.detectChanges();
-                hostComponent.window.open();
-
-                hostComponent.window.toggle();
-
-                expect(hostComponent.windowVisible).toEqual(false);
-            });
-
-            describe('closes the window', () => {
-                it('using the service', () => {
-                    hostFixture.detectChanges();
-                    hostComponent.window.open();
-
-                    hostComponent.window.toggle();
-
-                    expect(windowServiceMock.close).toHaveBeenCalledWith(1234);
-                });
             });
         });
     });

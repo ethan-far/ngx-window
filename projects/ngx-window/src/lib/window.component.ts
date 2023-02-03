@@ -34,10 +34,6 @@ export class WindowComponent implements OnInit {
     private _id?: number;
     get id() { return this._id; }
 
-    // TODO: Replace this state with a call to the window service
-    private _visible: boolean = false;
-    get visible() { return this._visible };
-
     get top() {
         let top = this.topOffset;
 
@@ -83,23 +79,15 @@ export class WindowComponent implements OnInit {
     }
 
     open() {
-        if (!this._visible) {
-            this._visible = true;
-            this.windowService.open(this._id!, this.template);
-            this.visibleChange.emit(this._visible);
-        }
+        this.windowService.open(this._id!, this.template);
     }
 
     close() {
-        if (this._visible) {
-            this._visible = false;
-            this.windowService.close(this._id!);
-            this.visibleChange.emit(this._visible);
-        }
+        this.windowService.close(this._id!);
     }
 
     toggle() {
-        if (!this.visible) {
+        if (!this.windowService.isOpen(this._id!)) {
             this.open();
         } else {
             this.close();
