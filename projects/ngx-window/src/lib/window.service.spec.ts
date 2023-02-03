@@ -17,7 +17,6 @@ describe('WindowService', () => {
     let windowRefElement: HTMLElement;
 
     beforeEach(() => {
-
         templateMock = mock(TemplateRef);
         containerMock = mock(ViewContainerRef);
         viewMock = mock(ViewRef);
@@ -51,6 +50,46 @@ describe('WindowService', () => {
         });
     });
 
+    describe('isOpen', () => {
+        it('returns "false" if a window with the specified id was never registered', () => {
+            windowService.registerContainer(containerMock);
+
+            const open = windowService.isOpen(123);
+
+            expect(open).toEqual(false);
+        });
+
+        it('returns "false" if the window was never opened', () => {
+            windowService.registerContainer(containerMock);
+            const id = windowService.registerWindow(windowRef, windowRefElement);
+
+            const open = windowService.isOpen(id);
+
+            expect(open).toEqual(false);
+        });
+
+        it('returns "true" if the window is open', () => {
+            windowService.registerContainer(containerMock);
+            const id = windowService.registerWindow(windowRef, windowRefElement);
+            windowService.open(id, templateMock);
+
+            const open = windowService.isOpen(id);
+
+            expect(open).toEqual(true);
+        });
+
+        it('returns "false" if the window closed after it was opened', () => {
+            windowService.registerContainer(containerMock);
+            const id = windowService.registerWindow(windowRef, windowRefElement);
+            windowService.open(id, templateMock);
+            windowService.close(id);
+
+            const open = windowService.isOpen(id);
+
+            expect(open).toEqual(false);
+        });
+    });
+
     describe('open', () => {
         it('creates an embedded view of the template in the registered container', () => {
             windowService.registerContainer(containerMock);
@@ -61,13 +100,40 @@ describe('WindowService', () => {
             expect(containerMock.createEmbeddedView).toHaveBeenCalledWith(templateMock);
         });
 
-        it('returns the created view', () => {
+        it('emits an event with the id of the window', () => {
+            let lastEvent: number | undefined;
+            windowService.windowOpened$.subscribe(id => lastEvent = id);
             windowService.registerContainer(containerMock);
             const id = windowService.registerWindow(windowRef, windowRefElement);
 
-            const view = windowService.open(id, templateMock);
+            windowService.open(id, templateMock);
 
-            expect(view).toEqual(viewMock);
+            expect(lastEvent).toEqual(1);
+        });
+
+        describe('if the window is already open', () => {
+            it('does not create a new view if the window is already open', () => {
+                windowService.registerContainer(containerMock);
+                const id = windowService.registerWindow(windowRef, windowRefElement);
+                windowService.open(id, templateMock);
+                jest.resetAllMocks();
+
+                windowService.open(id, templateMock);
+
+                expect(containerMock.createEmbeddedView).not.toHaveBeenCalled();
+            });
+
+            it('emits an event with the id of the window', () => {
+                let lastEvent: number | undefined;
+                windowService.registerContainer(containerMock);
+                const id = windowService.registerWindow(windowRef, windowRefElement);
+                windowService.open(id, templateMock);
+                windowService.windowOpened$.subscribe(id => lastEvent = id);
+
+                windowService.open(id, templateMock);
+
+                expect(lastEvent).toBeUndefined();
+            });
         });
     });
 
@@ -75,21 +141,114 @@ describe('WindowService', () => {
         it('finds the index of the view to remove', () => {
             windowService.registerContainer(containerMock);
             const id = windowService.registerWindow(windowRef, windowRefElement);
-            const view = windowService.open(id, templateMock);
+            windowService.open(id, templateMock);
 
-            windowService.close(view);
+            windowService.close(id);
 
-            expect(containerMock.indexOf).toHaveBeenCalledWith(view);
+            expect(containerMock.indexOf).toHaveBeenCalledWith(viewMock);
+        });
+
+        it('does not find the index of the view if the window is not registered', () => {
+            windowService.registerContainer(containerMock);
+
+            windowService.close(123);
+
+            expect(containerMock.indexOf).not.toHaveBeenCalled();
         });
 
         it('removes the view from the container', () => {
             windowService.registerContainer(containerMock);
             const id = windowService.registerWindow(windowRef, windowRefElement);
-            const view = windowService.open(id, templateMock);
+            windowService.open(id, templateMock);
 
-            windowService.close(view);
+            windowService.close(id);
 
             expect(containerMock.remove).toHaveBeenCalledWith(123);
+        });
+
+        it('emits an event with the id of the window', () => {
+            let lastEvent: number | undefined;
+            windowService.windowClosed$.subscribe(id => lastEvent = id);
+            windowService.registerContainer(containerMock);
+            const id = windowService.registerWindow(windowRef, windowRefElement);
+            windowService.open(id, templateMock);
+
+            windowService.close(id);
+
+            expect(lastEvent).toEqual(1);
+        });
+
+        describe('if the window is not open', () => {
+            it('does not remove a view from the container', () => {
+                windowService.registerContainer(containerMock);
+                const id = windowService.registerWindow(windowRef, windowRefElement);
+
+                windowService.close(id);
+
+                expect(containerMock.remove).not.toHaveBeenCalled();
+            });
+
+            it('emits an event with the id of the window', () => {
+                let lastEvent: number | undefined;
+                windowService.windowClosed$.subscribe(id => lastEvent = id);
+                windowService.registerContainer(containerMock);
+                const id = windowService.registerWindow(windowRef, windowRefElement);
+
+                windowService.close(id);
+
+                expect(lastEvent).toBeUndefined();
+            });
+        });
+    });
+
+    describe('closeContainingWindow', () => {
+
+        let windowElements: HTMLElement[];
+        let windowRefs: ElementRef<HTMLElement>[];
+        let ids: number[];
+
+        let outerElement: HTMLElement;
+        let innerElement: HTMLElement;
+
+        beforeEach(() => {
+            windowService.registerContainer(containerMock);
+
+            windowElements = ['div', 'ul', 'span'].map((tagName: string) => document.createElement(tagName));
+            windowRefs = windowElements.map((element: HTMLElement) => new ElementRef(element));
+            ids = windowRefs.map((windowRef: ElementRef<HTMLElement>) => windowService.registerWindow(windowRef));
+
+            innerElement = document.createElement('span');
+
+            outerElement = document.createElement('li');
+            outerElement.setAttribute('data-window-id', '2');
+            outerElement.append(innerElement);
+        });
+
+        it('closes the window directly containing the element', () => {
+            windowService.open(ids[1], templateMock);
+
+            windowService.closeContainingWindow(outerElement);
+
+            expect(containerMock.indexOf).toHaveBeenCalledWith(viewMock);
+            expect(containerMock.remove).toHaveBeenCalledWith(123);
+        });
+
+        it('closes the window indirectly containing the element', () => {
+            windowService.open(ids[1], templateMock);
+
+            windowService.closeContainingWindow(innerElement);
+
+            expect(containerMock.indexOf).toHaveBeenCalledWith(viewMock);
+            expect(containerMock.remove).toHaveBeenCalledWith(123);
+        });
+
+        it('does not try to close if no window contains the element', () => {
+            const fakeElement = document.createElement('table');
+
+            windowService.closeContainingWindow(fakeElement);
+
+            expect(containerMock.indexOf).not.toHaveBeenCalled();
+            expect(containerMock.remove).not.toHaveBeenCalled();
         });
     });
 });

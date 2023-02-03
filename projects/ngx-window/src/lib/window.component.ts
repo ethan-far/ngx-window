@@ -1,4 +1,5 @@
 import { Component, ElementRef, EventEmitter, Input, OnInit, Output, TemplateRef, ViewChild, ViewRef } from '@angular/core';
+import { filter, map, mergeWith } from 'rxjs';
 import { ElementPositionService } from './element-position.service';
 import { WindowService } from './window.service';
 
@@ -33,9 +34,6 @@ export class WindowComponent implements OnInit {
     private _id?: number;
     get id() { return this._id; }
 
-    private _visible: boolean = false;
-    get visible() { return this._visible };
-
     get top() {
         let top = this.topOffset;
 
@@ -64,12 +62,15 @@ export class WindowComponent implements OnInit {
         return left;
     }
 
-    private _view?: ViewRef;
-
     constructor(private windowService: WindowService, private elementPositionService: ElementPositionService, private elementRef: ElementRef) { }
 
     ngOnInit() {
         this._id = this.windowService.registerWindow(this.elementRef, this.refElement);
+
+        const opened$ = this.windowService.windowOpened$.pipe(filter(id => id === this._id), map(() => true));
+        const closed$ = this.windowService.windowClosed$.pipe(filter(id => id === this._id), map(() => false));
+
+        opened$.pipe(mergeWith(closed$)).subscribe(visible => this.visibleChange.emit(visible));
     }
 
     onClick(event: MouseEvent) {
@@ -78,18 +79,18 @@ export class WindowComponent implements OnInit {
     }
 
     open() {
-        if (!this._visible) {
-            this._visible = true;
-            this._view = this.windowService.open(this._id!, this.template);
-            this.visibleChange.emit(this._visible);
-        }
+        this.windowService.open(this._id!, this.template);
     }
 
     close() {
-        if (this._visible) {
-            this._visible = false;
-            this.windowService.close(this._view!);
-            this.visibleChange.emit(this._visible);
+        this.windowService.close(this._id!);
+    }
+
+    toggle() {
+        if (!this.windowService.isOpen(this._id!)) {
+            this.open();
+        } else {
+            this.close();
         }
     }
 }

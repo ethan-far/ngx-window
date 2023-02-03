@@ -17,12 +17,12 @@
             position: absolute;
             color: var(--color-blue5);
             text-align: center;
-            top: 0px;
+            top: 0;
             left: 50%;
-            transform: translateX(-50%) translateY(-50%);
-            background-color: var(--color-blue2);
-            padding: 10px;
+            transform: translateX(-50%);
+            background-color: transparent;
             content: attr(title);
+            width: calc(100% - 20px);
         }
 
         &::after {
@@ -33,7 +33,19 @@
             padding: 10px;
             font-size: 22px;
             z-index: -1;
-            color: rgb(0, 0, 0, 0.4);
+            color: rgb(0, 0, 0, 0.2);
+        }
+
+        button {
+            &::after {
+                margin-left: 10px;
+                font-size: 12px;
+                content: '\25bc';
+            }
+
+            &.open::after {
+                content: '\25b2';
+            }
         }
     }
 }
@@ -42,4 +54,9 @@
     border: 1px solid black;
     background-color: white;
     padding: 5px;
+
+    button {
+        margin: 10px;
+        width: calc(100% - 20px);
+    }
 }
