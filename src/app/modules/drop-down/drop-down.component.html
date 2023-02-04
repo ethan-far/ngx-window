@@ -1,0 +1,7 @@
+<button class="drop-down-button" [ngClass]="{ 'open': windowVisible }" (click)="onClick()" #dropDownButton>{{title}}</button>
+<ngx-window class="drop-down-window" [refElement]="dropDownButton" [options]="windowOptions"
+    [width]="200" [height]="250" (visibleChange)="onVisibleChange($event)" #dropDownWindow>
+    <div class="drop-down-content">
+        <ng-content></ng-content>
+    </div>
+</ngx-window>
