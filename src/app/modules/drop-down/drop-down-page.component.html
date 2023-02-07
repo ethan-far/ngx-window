@@ -12,4 +12,21 @@
             </div>
         </ngx-test-drop-down>
     </div>
+
+    <div class="box child-windows" title="Child windows">
+        <ngx-test-drop-down class="child-windows-drop-down" [title]="'Child windows'">
+            <div class="child-windows-content">Click the buttons below to open child windows.
+                <ngx-test-drop-down class="child-window-1-drop-down" [title]="'Child #1'">
+                    <div class="child-window-1-content">Click the button below to open grandchild window.
+                        <ngx-test-drop-down class="grandchild-window-drop-down" [title]="'Grandchild'">
+                            <div class="grandchild-window-content">This is a simple drop down with no content. Click outside to close.</div>
+                        </ngx-test-drop-down>
+                    </div>
+                </ngx-test-drop-down>
+                <ngx-test-drop-down class="child-window-2-drop-down" [title]="'Child #2'">
+                    <div class="child-window-2-content">This is a simple drop down with no content. Click outside to close.</div>
+                </ngx-test-drop-down>
+            </div>
+        </ngx-test-drop-down>
+    </div>
 </div>

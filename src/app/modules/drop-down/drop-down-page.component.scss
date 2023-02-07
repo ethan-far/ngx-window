@@ -56,3 +56,11 @@
         width: calc(100% - 20px);
     }
 }
+
+.child-windows-content,
+.child-window-1-content {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: space-between;
+}

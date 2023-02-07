@@ -179,6 +179,172 @@ describe('DropDownPageComponent', () => {
                     });
                 });
             });
+
+            describe('<div> element with', () => {
+                it('classes "box child-windows"', () => {
+                    fixture.detectChanges();
+
+                    let divElement = element.query(By.css('.drop-down-page div.box.child-windows'));
+
+                    expect(divElement !== null).toBeTruthy();
+                });
+
+                it('the expected title', () => {
+                    fixture.detectChanges();
+
+                    let divElement = element.query(By.css('.box.child-windows'));
+
+                    expect(divElement.attributes['title']).toEqual('Child windows');
+                });
+
+                describe('<ngx-test-drop-down> component with', () => {
+                    it('class "child-windows-drop-down"', () => {
+                        fixture.detectChanges();
+
+                        let dropDownElement = element.query(By.css('ngx-test-drop-down.child-windows-drop-down'));
+
+                        expect(dropDownElement !== null).toBeTruthy();
+                    });
+
+                    it('the expected title', () => {
+                        fixture.detectChanges();
+
+                        let dropDownElement = element.query(By.css('.child-windows-drop-down'));
+                        let dropDownComponent = dropDownElement.componentInstance as DropDownComponent;
+
+                        expect(dropDownComponent.title).toEqual('Child windows');
+                    });
+
+                    describe('<div> element with', () => {
+                        it('class "child-windows-content"', () => {
+                            fixture.detectChanges();
+
+                            let divElement = element.query(By.css('.child-windows-drop-down div.child-windows-content'));
+
+                            expect(divElement !== null).toBeTruthy();
+                        });
+
+                        it('the expected text', () => {
+                            fixture.detectChanges();
+
+                            let divElement = element.query(By.css('.child-windows-content'));
+
+                            expect(divElement.nativeElement.textContent).toMatch('Click the buttons below to open child windows.');
+                        });
+
+                        describe('<ngx-test-drop-down> component with', () => {
+                            it('class "child-window-1-drop-down"', () => {
+                                fixture.detectChanges();
+
+                                let dropDownElement = element.query(By.css('.child-windows-content ngx-test-drop-down.child-window-1-drop-down'));
+
+                                expect(dropDownElement !== null).toBeTruthy();
+                            });
+
+                            it('the expected title', () => {
+                                fixture.detectChanges();
+
+                                let dropDownElement = element.query(By.css('.child-window-1-drop-down'));
+                                let dropDownComponent = dropDownElement.componentInstance as DropDownComponent;
+
+                                expect(dropDownComponent.title).toEqual('Child #1');
+                            });
+
+                            describe('<div> element with', () => {
+                                it('class "child-window-1-content"', () => {
+                                    fixture.detectChanges();
+
+                                    let divElement = element.query(By.css('.child-window-1-drop-down div.child-window-1-content'));
+
+                                    expect(divElement !== null).toBeTruthy();
+                                });
+
+                                it('the expected text', () => {
+                                    fixture.detectChanges();
+
+                                    let divElement = element.query(By.css('.child-window-1-content'));
+
+                                    expect(divElement.nativeElement.textContent).toMatch('Click the button below to open grandchild window.');
+                                });
+
+                                describe('<ngx-test-drop-down> component with', () => {
+                                    it('class "grandchild-window-drop-down"', () => {
+                                        fixture.detectChanges();
+
+                                        let dropDownElement = element.query(By.css('.child-window-1-content ngx-test-drop-down.grandchild-window-drop-down'));
+
+                                        expect(dropDownElement !== null).toBeTruthy();
+                                    });
+
+                                    it('the expected title', () => {
+                                        fixture.detectChanges();
+
+                                        let dropDownElement = element.query(By.css('.grandchild-window-drop-down'));
+                                        let dropDownComponent = dropDownElement.componentInstance as DropDownComponent;
+
+                                        expect(dropDownComponent.title).toEqual('Grandchild');
+                                    });
+
+                                    describe('<div> element with', () => {
+                                        it('class "grandchild-window-content"', () => {
+                                            fixture.detectChanges();
+
+                                            let divElement = element.query(By.css('.grandchild-window-drop-down div.grandchild-window-content'));
+
+                                            expect(divElement !== null).toBeTruthy();
+                                        });
+
+                                        it('the expected text', () => {
+                                            fixture.detectChanges();
+
+                                            let divElement = element.query(By.css('.grandchild-window-content'));
+
+                                            expect(divElement.nativeElement.textContent).toMatch('This is a simple drop down with no content. Click outside to close.');
+                                        });
+                                    });
+                                });
+                            });
+                        });
+
+                        describe('<ngx-test-drop-down> component with', () => {
+                            it('class "child-window-2-drop-down"', () => {
+                                fixture.detectChanges();
+
+                                let dropDownElement = element.query(By.css('.child-windows-content ngx-test-drop-down.child-window-2-drop-down'));
+
+                                expect(dropDownElement !== null).toBeTruthy();
+                            });
+
+                            it('the expected title', () => {
+                                fixture.detectChanges();
+
+                                let dropDownElement = element.query(By.css('.child-window-2-drop-down'));
+                                let dropDownComponent = dropDownElement.componentInstance as DropDownComponent;
+
+                                expect(dropDownComponent.title).toEqual('Child #2');
+                            });
+
+                            describe('<div> element with', () => {
+                                it('class "child-window-2-content"', () => {
+                                    fixture.detectChanges();
+
+                                    let divElement = element.query(By.css('.child-window-2-drop-down div.child-window-2-content'));
+
+                                    expect(divElement !== null).toBeTruthy();
+                                });
+
+                                it('the expected text', () => {
+                                    fixture.detectChanges();
+
+                                    let divElement = element.query(By.css('.child-window-2-content'));
+
+                                    expect(divElement.nativeElement.textContent).toMatch('This is a simple drop down with no content. Click outside to close.');
+                                });
+                            });
+                        });
+                    });
+                });
+            });
         });
     });
 });
