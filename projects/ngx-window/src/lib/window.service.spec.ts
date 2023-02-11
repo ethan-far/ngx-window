@@ -6,6 +6,27 @@ import { WindowService } from './window.service';
 
 describe('WindowService', () => {
 
+    class IntersectionObserverMock {
+        readonly root: Element | Document | null = null;
+        readonly rootMargin: string = '';
+        readonly thresholds: ReadonlyArray<number> = [];
+
+        constructor(callback: IntersectionObserverCallback, options?: IntersectionObserverInit) {
+            intersectionObserverMock = this;
+            intersectionObserverCallback = callback;
+            intersectionObserverOptions = options;
+        }
+
+        disconnect() { }
+        observe(target: Element) { }
+        takeRecords() { return []; }
+        unobserve(target: Element) { };
+    }
+
+    let intersectionObserverMock: IntersectionObserverMock;
+    let intersectionObserverCallback: IntersectionObserverCallback;
+    let intersectionObserverOptions: IntersectionObserverInit | undefined;
+
     let containerMock: ViewContainerRef;
     let templateMock: TemplateRef<any>;
     let viewMock1: ViewRef;
@@ -19,6 +40,8 @@ describe('WindowService', () => {
     let windowRefElement: HTMLElement;
 
     beforeEach(() => {
+        global.IntersectionObserver = IntersectionObserverMock;
+
         templateMock = mock(TemplateRef);
         containerMock = mock(ViewContainerRef);
         viewMock1 = mock(ViewRef);
@@ -42,14 +65,16 @@ describe('WindowService', () => {
         windowRefElement = document.createElement('span');
     });
 
+    describe('on init', () => {
+        it('creates an intersection observer', () => {
+            expect(intersectionObserverMock).toBeDefined();
+        });
+    });
+
     describe('on scroll', () => {
         let childElement: HTMLElement;
         let parentElement: HTMLElement;
         let grandParentElement: HTMLElement;
-
-        let id1: number;
-        let id2: number;
-        let id3: number;
 
         beforeEach(() => {
             windowService.registerContainer(containerMock);
@@ -62,9 +87,9 @@ describe('WindowService', () => {
             grandParentElement.appendChild(parentElement);
             document.body.appendChild(grandParentElement);
 
-            id1 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), grandParentElement);
-            id2 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), parentElement);
-            id3 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), childElement);
+            windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), grandParentElement);
+            windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), parentElement);
+            windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), childElement);
         });
 
         it('fires an event with the id of the windows referencing the scrolled element', () => {
@@ -86,6 +111,32 @@ describe('WindowService', () => {
         });
     });
 
+    describe('on intersection', () => {
+        it('close any windows referencing the element', () => {
+            // Note: It is not good to spy on the unit under test, but since the close functionality is considerable, it's better than repeating all the tests
+            // TODO: Consider refactoring the functionalities of open/close/etc. into sub-services
+            jest.spyOn(windowService, 'close');
+            const refElement = document.createElement('button');
+            const id1 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), refElement);
+            const id2 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')));
+            const id3 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), refElement);
+            const entry = {
+                boundingClientRect: mockDOMRect(),
+                intersectionRatio: 0,
+                intersectionRect: mockDOMRect(),
+                isIntersecting: false,
+                rootBounds: null,
+                target: refElement,
+                time: 0
+            };
+
+            intersectionObserverCallback([entry], intersectionObserverMock);
+
+            expect(windowService.close).toHaveBeenNthCalledWith(1, id1);
+            expect(windowService.close).toHaveBeenNthCalledWith(2, id3);
+        });
+    });
+
     describe('registerWindow', () => {
         it('returns consecutive numbers ids', () => {
             let id1 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), document.createElement('a'));
@@ -95,6 +146,19 @@ describe('WindowService', () => {
             expect(id1).toEqual(1);
             expect(id2).toEqual(2);
             expect(id3).toEqual(3);
+        });
+
+        it('starts observing intersections for the reference elements', () => {
+            jest.spyOn(intersectionObserverMock, 'observe');
+            let refElement1 = document.createElement('a');
+            let refElement2 = document.createElement('div');
+
+            windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), refElement1);
+            windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')));
+            windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), refElement2);
+
+            expect(intersectionObserverMock.observe).toHaveBeenNthCalledWith(1, refElement1);
+            expect(intersectionObserverMock.observe).toHaveBeenNthCalledWith(2, refElement2);
         });
     });
 
@@ -334,4 +398,8 @@ function createDivWithClass(className: string): HTMLElement {
     divElement.className = className;
 
     return divElement;
+}
+
+function mockDOMRect() {
+    return { x: 0, y: 0, top: 0, left: 0, right: 0, bottom: 0, width: 0, height: 0, toJSON: () => { } }
 }

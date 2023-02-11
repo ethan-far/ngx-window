@@ -1,6 +1,10 @@
 import { ApplicationRef, ComponentFactoryResolver, ComponentRef, Injector } from '@angular/core';
-import { TestBed } from '@angular/core/testing';
+import { TestBed, waitForAsync } from '@angular/core/testing';
+import { MockComponent } from 'ng-mocks';
+import { mock } from 'ts-mockito';
 import { installWindowContainer } from './bootstrap-listener';
+import { WindowContainerComponent } from './window-container.component';
+import { WindowService } from './window.service';
 
 describe('installWindowContainer', () => {
 
@@ -10,9 +14,21 @@ describe('installWindowContainer', () => {
 
     let listener: (component: ComponentRef<any>) => void;
 
-    beforeEach(() => {
-        TestBed.configureTestingModule({});
+    beforeEach(waitForAsync(() => {
 
+        let windowServiceMock = mock(WindowService);
+
+        TestBed.configureTestingModule({
+            declarations: [
+                MockComponent(WindowContainerComponent)
+            ],
+            providers: [
+                { provide: WindowService, useFactory: () => windowServiceMock }
+            ]
+        }).compileComponents();
+    }));
+
+    beforeEach(() => {
         applicationRef = TestBed.inject(ApplicationRef);
         injector = TestBed.inject(Injector);
         componentFactoryResolver = TestBed.inject(ComponentFactoryResolver);
