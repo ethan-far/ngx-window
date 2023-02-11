@@ -42,6 +42,50 @@ describe('WindowService', () => {
         windowRefElement = document.createElement('span');
     });
 
+    describe('on scroll', () => {
+        let childElement: HTMLElement;
+        let parentElement: HTMLElement;
+        let grandParentElement: HTMLElement;
+
+        let id1: number;
+        let id2: number;
+        let id3: number;
+
+        beforeEach(() => {
+            windowService.registerContainer(containerMock);
+
+            childElement = createDivWithClass('child');
+            parentElement = createDivWithClass('parent');
+            grandParentElement = createDivWithClass('grandParent');
+
+            parentElement.appendChild(childElement);
+            grandParentElement.appendChild(parentElement);
+            document.body.appendChild(grandParentElement);
+
+            id1 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), grandParentElement);
+            id2 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), parentElement);
+            id3 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), childElement);
+        });
+
+        it('fires an event with the id of the windows referencing the scrolled element', () => {
+            const windowIds: number[] = [];
+            windowService.windowMoved$.subscribe(id => windowIds.push(id));
+
+            childElement.dispatchEvent(new Event('scroll'));
+
+            expect(windowIds.sort()).toEqual([3]);
+        });
+
+        it('fires an event with the ids of all the windows which reference elements are contained within the scrolled element', () => {
+            const windowIds: number[] = [];
+            windowService.windowMoved$.subscribe(id => windowIds.push(id));
+
+            grandParentElement.dispatchEvent(new Event('scroll'));
+
+            expect(windowIds.sort()).toEqual([1, 2, 3]);
+        });
+    });
+
     describe('registerWindow', () => {
         it('returns consecutive numbers ids', () => {
             let id1 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), document.createElement('a'));
@@ -274,7 +318,7 @@ describe('WindowService', () => {
     });
 });
 
-function createDivWithParent(parentId: number) {
+function createDivWithParent(parentId: number): HTMLElement {
     const innerDiv = document.createElement('div');
     const outerDiv = document.createElement('div');
 
@@ -282,4 +326,12 @@ function createDivWithParent(parentId: number) {
     outerDiv.append(innerDiv);
 
     return innerDiv;
+}
+
+function createDivWithClass(className: string): HTMLElement {
+    const divElement = document.createElement('div');
+
+    divElement.className = className;
+
+    return divElement;
 }

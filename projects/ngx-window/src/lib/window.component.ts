@@ -1,5 +1,5 @@
-import { Component, ElementRef, EventEmitter, Input, OnInit, Output, TemplateRef, ViewChild, ViewRef } from '@angular/core';
-import { filter, map, mergeWith } from 'rxjs';
+import { ChangeDetectorRef, Component, ElementRef, EventEmitter, HostListener, Input, OnDestroy, OnInit, Output, TemplateRef, ViewChild, ViewRef } from '@angular/core';
+import { filter, map, mergeWith, Subscription } from 'rxjs';
 import { ElementPositionService } from './element-position.service';
 import { WindowService } from './window.service';
 
@@ -17,7 +17,7 @@ export interface WindowOptions {
     templateUrl: './window.component.html',
     styleUrls: ['./window.component.scss']
 })
-export class WindowComponent implements OnInit {
+export class WindowComponent implements OnInit, OnDestroy {
 
     @ViewChild('template', { static: true })
     private template!: TemplateRef<any>;
@@ -30,6 +30,9 @@ export class WindowComponent implements OnInit {
     @Input() refElement?: HTMLElement;
 
     @Output() visibleChange = new EventEmitter<boolean>();
+
+    private _openSubscription?: Subscription;
+    private _moveSubscription?: Subscription;
 
     private _id?: number;
     get id() { return this._id; }
@@ -45,7 +48,7 @@ export class WindowComponent implements OnInit {
                 (this.options.alignment?.alignFromBottom ? this.height : 0);
         }
 
-        return top;
+        return Math.round(top);
     }
 
     get left() {
@@ -59,18 +62,36 @@ export class WindowComponent implements OnInit {
                 (this.options.alignment?.alignFromRight ? this.width : 0);
         }
 
-        return left;
+        return Math.round(left);
     }
 
-    constructor(private windowService: WindowService, private elementPositionService: ElementPositionService, private elementRef: ElementRef) { }
+    constructor(private windowService: WindowService, private elementPositionService: ElementPositionService, private elementRef: ElementRef, private changeDetectorRef: ChangeDetectorRef) { }
 
     ngOnInit() {
         this._id = this.windowService.registerWindow(this.elementRef, this.refElement);
 
         const opened$ = this.windowService.windowOpened$.pipe(filter(id => id === this._id), map(() => true));
         const closed$ = this.windowService.windowClosed$.pipe(filter(id => id === this._id), map(() => false));
+        const moved$ = this.windowService.windowMoved$.pipe(filter(id => id === this._id), map(() => true));
 
-        opened$.pipe(mergeWith(closed$)).subscribe(visible => this.visibleChange.emit(visible));
+        this._openSubscription = opened$.pipe(mergeWith(closed$)).subscribe(visible => this.visibleChange.emit(visible));
+        this._moveSubscription = moved$.subscribe(() => {
+            if (this.windowService.isOpen(this._id!)) {
+                this.changeDetectorRef.detectChanges();
+            }
+        });
+    }
+
+    ngOnDestroy() {
+        this._openSubscription?.unsubscribe();
+        this._moveSubscription?.unsubscribe();
+    }
+
+    @HostListener('window:resize', ['$event'])
+    onWindowResize() {
+        if (this.windowService.isOpen(this._id!)) {
+            this.changeDetectorRef.detectChanges();
+        }
     }
 
     onClick(event: MouseEvent) {

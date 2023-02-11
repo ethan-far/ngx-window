@@ -21,14 +21,15 @@ describe('WindowComponent', () => {
     let viewMock: ViewRef;
     let containerRef: ViewContainerRef;
 
-    let hostFixture: ComponentFixture<TestHostComponent>;
-    let hostComponent: TestHostComponent;
-    let hostElement: DebugElement;
+    let fixture: ComponentFixture<TestHostComponent>;
+    let component: TestHostComponent;
+    let element: DebugElement;
 
     beforeEach(waitForAsync(() => {
         windowServiceMock = mock(WindowService);
         Object.defineProperty(windowServiceMock, 'windowOpened$', { value: new Subject() });
         Object.defineProperty(windowServiceMock, 'windowClosed$', { value: new Subject() });
+        Object.defineProperty(windowServiceMock, 'windowMoved$', { value: new Subject() });
 
         elementPositionServiceMock = mock(ElementPositionService);
 
@@ -61,28 +62,84 @@ describe('WindowComponent', () => {
     }));
 
     beforeEach(() => {
-        hostFixture = TestBed.createComponent(TestHostComponent);
-        hostComponent = hostFixture.componentInstance;
-        hostElement = hostFixture.debugElement;
+        fixture = TestBed.createComponent(TestHostComponent);
+        component = fixture.componentInstance;
+        element = fixture.debugElement;
     });
 
     describe('on init', () => {
         it('registers the window', () => {
             const elementMock = document.createElement('span');
-            hostComponent.window.refElement = elementMock;
+            component.window.refElement = elementMock;
 
             jest.spyOn(windowServiceMock, 'registerWindow');
-            hostFixture.detectChanges();
+            fixture.detectChanges();
 
             expect(windowServiceMock.registerWindow).toHaveBeenCalledWith(expect.any(ElementRef), elementMock);
+        });
+    });
+
+    describe('on window resize', () => {
+        it('triggers a change detection cycle', () => {
+            jest.spyOn(windowServiceMock, 'isOpen').mockReturnValue(true);
+            fixture.detectChanges();
+            const spy = jest.spyOn((component.window as any).changeDetectorRef, 'detectChanges');
+
+            window.dispatchEvent(new Event('resize'));
+
+            expect(spy).toHaveBeenCalled();
+        });
+
+        it('does not trigger a change detection cycle if the window is not open', () => {
+            jest.spyOn(windowServiceMock, 'isOpen').mockReturnValue(false);
+            fixture.detectChanges();
+            const spy = jest.spyOn((component.window as any).changeDetectorRef, 'detectChanges');
+
+            window.dispatchEvent(new Event('resize'));
+
+            expect(spy).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('on reference element moved', () => {
+        it('triggers a change detection cycle', () => {
+            jest.spyOn(windowServiceMock, 'isOpen').mockReturnValue(true);
+            fixture.detectChanges();
+            const spy = jest.spyOn((component.window as any).changeDetectorRef, 'detectChanges');
+
+            windowServiceMock.windowMoved$.next(1234);
+
+            expect(spy).toHaveBeenCalled();
+        });
+
+        describe('does not trigger a change detection cycle if', () => {
+            it('a different window was scrolled', () => {
+                jest.spyOn(windowServiceMock, 'isOpen').mockReturnValue(true);
+                fixture.detectChanges();
+                const spy = jest.spyOn((component.window as any).changeDetectorRef, 'detectChanges');
+
+                windowServiceMock.windowMoved$.next(987);
+
+                expect(spy).not.toHaveBeenCalled();
+            });
+
+            it('the window is not open', () => {
+                jest.spyOn(windowServiceMock, 'isOpen').mockReturnValue(false);
+                fixture.detectChanges();
+                const spy = jest.spyOn((component.window as any).changeDetectorRef, 'detectChanges');
+
+                windowServiceMock.windowMoved$.next(1234);
+
+                expect(spy).not.toHaveBeenCalled();
+            });
         });
     });
 
     describe('notifies of visibility', () => {
         it('when the window is opened or closed', () => {
             const visibility: boolean[] = [];
-            hostFixture.detectChanges();
-            hostComponent.window.visibleChange.subscribe(visible => visibility.push(visible));
+            fixture.detectChanges();
+            component.window.visibleChange.subscribe(visible => visibility.push(visible));
 
             windowServiceMock.windowOpened$.next(987);
             windowServiceMock.windowOpened$.next(1234);
@@ -99,9 +156,9 @@ describe('WindowComponent', () => {
 
     describe('"open"', () => {
         it('opens the window using the service', () => {
-            hostFixture.detectChanges();
+            fixture.detectChanges();
 
-            hostComponent.window.open();
+            component.window.open();
 
             expect(windowServiceMock.open).toHaveBeenCalledWith(1234, jasmine.any(TemplateRef));
         });
@@ -109,10 +166,10 @@ describe('WindowComponent', () => {
 
     describe('"close"', () => {
         it('closes the window using the service', () => {
-            hostFixture.detectChanges();
-            hostComponent.window.open();
+            fixture.detectChanges();
+            component.window.open();
 
-            hostComponent.window.close();
+            component.window.close();
 
             expect(windowServiceMock.close).toHaveBeenCalledWith(1234);
         });
@@ -125,9 +182,9 @@ describe('WindowComponent', () => {
             });
 
             it('opens the window using the service', () => {
-                hostFixture.detectChanges();
+                fixture.detectChanges();
 
-                hostComponent.window.toggle();
+                component.window.toggle();
 
                 expect(windowServiceMock.open).toHaveBeenCalledWith(1234, jasmine.any(TemplateRef));
             });
@@ -139,10 +196,10 @@ describe('WindowComponent', () => {
             });
 
             it('closes the window using the service', () => {
-                hostFixture.detectChanges();
-                hostComponent.window.open();
+                fixture.detectChanges();
+                component.window.open();
 
-                hostComponent.window.toggle();
+                component.window.toggle();
 
                 expect(windowServiceMock.close).toHaveBeenCalledWith(1234);
             });
@@ -151,15 +208,7 @@ describe('WindowComponent', () => {
 
     describe('has', () => {
 
-        let fixture: ComponentFixture<TestHostComponent>;
-        let component: TestHostComponent;
-        let element: DebugElement;
-
         beforeEach(() => {
-            fixture = TestBed.createComponent(TestHostComponent);
-            component = fixture.componentInstance;
-            element = fixture.debugElement;
-
             fixture.detectChanges();
             component.window.open();
         });
@@ -190,10 +239,6 @@ describe('WindowComponent', () => {
                     expect(divElement.styles['top']).toEqual('135px');
                     expect(divElement.styles['left']).toEqual('246px');
                 });
-
-                // jest.spyOn(elementPositionServiceMock, 'getPosition').mockReturnValue({
-                //     top: 200, left: 100, width: 400, height: 300
-                // });
 
                 using([
                     ['top left', false, false, false, false, 250, 200],
@@ -236,6 +281,20 @@ describe('WindowComponent', () => {
                             expect(divElement.styles['left']).toEqual(`${expectedLeft}px`);
                         });
                     });
+
+                it('rounded to the nearest pixel', () => {
+                    component.window.refElement = elementMock;
+                    component.window.topOffset = 50.2;
+                    component.window.leftOffset = 100.7;
+                    component.window.width = 180;
+                    component.window.height = 240;
+                    fixture.detectChanges();
+
+                    let divElement = element.query(By.css('.window'));
+
+                    expect(divElement.styles['top']).toEqual('250px');
+                    expect(divElement.styles['left']).toEqual('201px');
+                });
             });
 
             it('the "width" and "height" styles set to the values of "width" and "height"', () => {

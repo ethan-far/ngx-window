@@ -3,7 +3,8 @@ import { Subject } from 'rxjs';
 
 interface Window {
     id: number;
-    element: ElementRef;
+    elementRef: ElementRef;
+    refElement?: HTMLElement;
     view?: ViewRef;
     children: number[];
 }
@@ -15,11 +16,26 @@ export class WindowService {
 
     readonly windowOpened$: Subject<number> = new Subject();
     readonly windowClosed$: Subject<number> = new Subject();
+    readonly windowMoved$: Subject<number> = new Subject();
 
     private container?: ViewContainerRef;
     private lastId: number = 0;
 
     private windows: { [id: number]: Window } = {};
+
+    constructor() {
+        // One listener to scroll events that get them at the capture stage (before they reach the scrolled element) 
+        // is much more efficient, especially when passive (cannot interfere with the event propagation cycle).
+        // Moreover, instead of performing actions on the event thread, it emits the values on an Observable to
+        // be handled asynchronously.
+        document.addEventListener('scroll', event => {
+            Object.values(this.windows).forEach((window: Window) => {
+                if ((event.target instanceof Node) && window.refElement && event.target.contains(window.refElement)) {
+                    this.windowMoved$.next(window.id);
+                }
+            });
+        }, { capture: true, passive: true });
+    }
 
     registerContainer(container: ViewContainerRef) {
         this.container = container;
@@ -30,7 +46,8 @@ export class WindowService {
 
         this.windows[id] = {
             id,
-            element: elementRef,
+            elementRef,
+            refElement,
             children: []
         };
 
@@ -48,7 +65,7 @@ export class WindowService {
             const window = this.windows[id];
 
             const view = this.container!.createEmbeddedView(template);
-            const parentId = this.findContainingWindowId(window.element.nativeElement);
+            const parentId = this.findContainingWindowId(window.elementRef.nativeElement);
 
             if (this.windows[parentId]) {
                 this.windows[parentId].children.push(id);
