@@ -47,6 +47,19 @@
                 content: '\25b2';
             }
         }
+
+        .scrollable {
+            width: calc(100% + 20px);
+            height: 100%;
+            overflow: overlay;
+
+            &::after {
+                content: '';
+                width: 200px;
+                height: 250px;
+                display: block;
+            }
+        }
     }
 }
 

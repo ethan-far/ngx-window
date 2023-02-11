@@ -29,4 +29,12 @@
             </div>
         </ngx-test-drop-down>
     </div>
+
+    <div class="box outside-scroll" title="Outside scroll">
+        <div class="scrollable">
+            <ngx-test-drop-down class="scrolled-drop-down" [title]="'Scrolled'">
+                <div class="scrolled-content" #scrollable>This drop down is in a scrollable area. It will follow the reference element when scrolled.</div>
+            </ngx-test-drop-down>
+        </div>
+    </div>
 </div>
