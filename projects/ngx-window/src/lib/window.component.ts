@@ -3,13 +3,15 @@ import { filter, map, mergeWith, Subscription } from 'rxjs';
 import { ElementPositionService } from './element-position.service';
 import { WindowService } from './window.service';
 
+export interface WindowAlignmentOptions {
+    alignToBottom?: boolean;
+    alignToRight?: boolean;
+    alignFromBottom?: boolean;
+    alignFromRight?: boolean;
+}
+
 export interface WindowOptions {
-    alignment?: {
-        alignToBottom?: boolean;
-        alignToRight?: boolean;
-        alignFromBottom?: boolean;
-        alignFromRight?: boolean;
-    }
+    alignment?: WindowAlignmentOptions
 };
 
 @Component({

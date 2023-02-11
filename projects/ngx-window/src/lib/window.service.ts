@@ -18,10 +18,12 @@ export class WindowService {
     readonly windowClosed$: Subject<number> = new Subject();
     readonly windowMoved$: Subject<number> = new Subject();
 
-    private container?: ViewContainerRef;
-    private lastId: number = 0;
+    private _container?: ViewContainerRef;
+    private _lastId: number = 0;
 
-    private windows: { [id: number]: Window } = {};
+    private _windows: { [id: number]: Window } = {};
+
+    private _intersectionObserver: IntersectionObserver;
 
     constructor() {
         // One listener to scroll events that get them at the capture stage (before they reach the scrolled element) 
@@ -29,22 +31,32 @@ export class WindowService {
         // Moreover, instead of performing actions on the event thread, it emits the values on an Observable to
         // be handled asynchronously.
         document.addEventListener('scroll', event => {
-            Object.values(this.windows).forEach((window: Window) => {
+            Object.values(this._windows).forEach((window: Window) => {
                 if ((event.target instanceof Node) && window.refElement && event.target.contains(window.refElement)) {
                     this.windowMoved$.next(window.id);
                 }
             });
         }, { capture: true, passive: true });
+
+        this._intersectionObserver = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+                Object.values(this._windows).filter(window => window.refElement === entry.target).forEach(window => this.close(window.id));
+            })
+        }, { threshold: 1 });
     }
 
     registerContainer(container: ViewContainerRef) {
-        this.container = container;
+        this._container = container;
     }
 
     registerWindow(elementRef: ElementRef<HTMLElement>, refElement?: HTMLElement): number {
-        const id = ++this.lastId;
+        if (refElement) {
+            this._intersectionObserver.observe(refElement);
+        }
 
-        this.windows[id] = {
+        const id = ++this._lastId;
+
+        this._windows[id] = {
             id,
             elementRef,
             refElement,
@@ -55,20 +67,20 @@ export class WindowService {
     }
 
     isOpen(id: number): boolean {
-        const window = this.windows[id];
+        const window = this._windows[id];
 
         return !!window?.view;
     }
 
     open(id: number, template: TemplateRef<any>) {
         if (!this.isOpen(id)) {
-            const window = this.windows[id];
+            const window = this._windows[id];
 
-            const view = this.container!.createEmbeddedView(template);
+            const view = this._container!.createEmbeddedView(template);
             const parentId = this.findContainingWindowId(window.elementRef.nativeElement);
 
-            if (this.windows[parentId]) {
-                this.windows[parentId].children.push(id);
+            if (this._windows[parentId]) {
+                this._windows[parentId].children.push(id);
             }
 
             window.view = view;
@@ -79,13 +91,13 @@ export class WindowService {
 
     close(id: number) {
         if (this.isOpen(id)) {
-            const window = this.windows[id];
+            const window = this._windows[id];
 
             window.children.forEach(childId => this.close(childId));
             window.children = [];
 
-            const index = this.container!.indexOf(window!.view!);
-            this.container!.remove(index);
+            const index = this._container!.indexOf(window!.view!);
+            this._container!.remove(index);
 
             window.view = undefined;
 
