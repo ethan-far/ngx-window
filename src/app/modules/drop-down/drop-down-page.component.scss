@@ -50,13 +50,17 @@
     }
 }
 
-.drop-down-content {
-    border: 1px solid black;
-    background-color: white;
-    padding: 5px;
-
-    button {
+.close-from-within-content {
+    .close-button {
         margin: 10px;
         width: calc(100% - 20px);
     }
+}
+
+.child-windows-content,
+.child-window-1-content {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: space-between;
 }

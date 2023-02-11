@@ -3,7 +3,9 @@ import { Subject } from 'rxjs';
 
 interface Window {
     id: number;
+    element: ElementRef;
     view?: ViewRef;
+    children: number[];
 }
 
 @Injectable({
@@ -26,7 +28,11 @@ export class WindowService {
     registerWindow(elementRef: ElementRef<HTMLElement>, refElement?: HTMLElement): number {
         const id = ++this.lastId;
 
-        this.windows[id] = { id };
+        this.windows[id] = {
+            id,
+            element: elementRef,
+            children: []
+        };
 
         return id;
     }
@@ -39,9 +45,16 @@ export class WindowService {
 
     open(id: number, template: TemplateRef<any>) {
         if (!this.isOpen(id)) {
-            const view = this.container!.createEmbeddedView(template);
+            const window = this.windows[id];
 
-            this.windows[id].view = view;
+            const view = this.container!.createEmbeddedView(template);
+            const parentId = this.findContainingWindowId(window.element.nativeElement);
+
+            if (this.windows[parentId]) {
+                this.windows[parentId].children.push(id);
+            }
+
+            window.view = view;
 
             this.windowOpened$.next(id);
         }
@@ -50,8 +63,11 @@ export class WindowService {
     close(id: number) {
         if (this.isOpen(id)) {
             const window = this.windows[id];
-            const index = this.container!.indexOf(window!.view!);
 
+            window.children.forEach(childId => this.close(childId));
+            window.children = [];
+
+            const index = this.container!.indexOf(window!.view!);
             this.container!.remove(index);
 
             window.view = undefined;

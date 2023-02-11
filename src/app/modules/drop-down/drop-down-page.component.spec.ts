@@ -5,6 +5,7 @@ import { MockComponent, MockDirective, ngMocks } from 'ng-mocks';
 import { WindowCloserDirective } from '../../../../projects/ngx-window/src/lib/window-closer.directive';
 import { WindowComponent } from '../../../../projects/ngx-window/src/public-api';
 import { DropDownPageComponent } from './drop-down-page.component';
+import { DropDownComponent } from './drop-down.component';
 
 describe('DropDownPageComponent', () => {
 
@@ -16,6 +17,7 @@ describe('DropDownPageComponent', () => {
         TestBed.configureTestingModule({
             declarations: [
                 DropDownPageComponent,
+                MockComponent(DropDownComponent),
                 MockComponent(WindowComponent),
                 MockDirective(WindowCloserDirective)
             ]
@@ -55,128 +57,29 @@ describe('DropDownPageComponent', () => {
                     expect(divElement.attributes['title']).toEqual('Simple');
                 });
 
-                describe('<button> element with', () => {
-                    it('class "simple-drop-down-button"', () => {
-                        fixture.detectChanges();
-
-                        let buttonElemenet = element.query(By.css('.box.simple button.simple-drop-down-button'));
-
-                        expect(buttonElemenet !== null).toBeTruthy();
-                    });
-
-                    it('class "open" if the drop down is visible', () => {
-                        component.simpleDropDownWindowVisible = true;
-                        fixture.detectChanges();
-
-                        let buttonElemenet = element.query(By.css('.simple-drop-down-button'));
-
-                        expect(buttonElemenet.classes['open']).toBeTruthy();
-                    });
-
-                    it('out class "open" if the drop down is not visible', () => {
-                        component.simpleDropDownWindowVisible = false;
-                        fixture.detectChanges();
-
-                        let buttonElemenet = element.query(By.css('.simple-drop-down-button'));
-
-                        expect(buttonElemenet.classes['open']).toBeFalsy();
-                    });
-
-                    it('the expect text', () => {
-                        fixture.detectChanges();
-
-                        let buttonElemenet = element.query(By.css('.simple-drop-down-button'));
-
-                        expect(buttonElemenet.nativeElement.textContent).toEqual('Simple');
-                    });
-
-                    it('click handler that toggles the drop down', () => {
-                        fixture.detectChanges();
-                        jest.spyOn(component.simpleDropDown, 'toggle');
-
-                        let buttonElemenet = element.query(By.css('.simple-drop-down-button'));
-                        buttonElemenet.triggerEventHandler('click', {});
-
-                        expect(component.simpleDropDown.toggle).toHaveBeenCalled();
-                    });
-
-                    describe('visibility change event listener that', () => {
-                        describe('changes "simpleDropDownVisible" to', () => {
-                            it('"true" when the drop down becomes visible', () => {
-                                fixture.detectChanges();
-
-                                let windowElement = element.query(By.css('.simple-drop-down'));
-                                let windowComponent = windowElement.componentInstance as WindowComponent;
-                                windowComponent.visibleChange.emit(true);
-
-                                expect(component.simpleDropDownWindowVisible).toEqual(true);
-                            });
-
-                            it('"false" when the drop down becomes invisible', () => {
-                                component.simpleDropDownWindowVisible = true;
-                                fixture.detectChanges();
-
-                                let windowElement = element.query(By.css('.simple-drop-down'));
-                                let windowComponent = windowElement.componentInstance as WindowComponent;
-                                windowComponent.visibleChange.emit(false);
-
-                                expect(component.simpleDropDownWindowVisible).toEqual(false);
-                            });
-                        });
-                    });
-                });
-
-                describe('<ngx-window> component with', () => {
+                describe('<ngx-test-drop-down> component with', () => {
                     it('class "simple-drop-down"', () => {
                         fixture.detectChanges();
 
-                        let windowElement = element.query(By.css('ngx-window.simple-drop-down'));
+                        let dropDownElement = element.query(By.css('ngx-test-drop-down.simple-drop-down'));
 
-                        expect(windowElement !== null).toBeTruthy();
+                        expect(dropDownElement !== null).toBeTruthy();
                     });
 
-                    it('"refElement" set to the button', () => {
+                    it('the expected title', () => {
                         fixture.detectChanges();
 
-                        let buttonElement = element.query(By.css('.simple-drop-down-button'));
-                        let windowElement = element.query(By.css('.simple-drop-down'));
-                        let windowComponent = windowElement.componentInstance as WindowComponent;
+                        let dropDownElement = element.query(By.css('.simple-drop-down'));
+                        let dropDownComponent = dropDownElement.componentInstance as DropDownComponent;
 
-                        expect(windowComponent.refElement).toBe(buttonElement.nativeElement);
-                    });
-
-                    it('"width" set to 200', () => {
-                        fixture.detectChanges();
-
-                        let windowElement = element.query(By.css('.simple-drop-down'));
-                        let windowComponent = windowElement.componentInstance as WindowComponent;
-
-                        expect(windowComponent.width).toEqual(200);
-                    });
-
-                    it('"height" set to 250', () => {
-                        fixture.detectChanges();
-
-                        let windowElement = element.query(By.css('.simple-drop-down'));
-                        let windowComponent = windowElement.componentInstance as WindowComponent;
-
-                        expect(windowComponent.height).toEqual(250);
-                    });
-
-                    it('"options" set to bottom alignment', () => {
-                        fixture.detectChanges();
-
-                        let windowElement = element.query(By.css('.simple-drop-down'));
-                        let windowComponent = windowElement.componentInstance as WindowComponent;
-
-                        expect(windowComponent.options?.alignment?.alignToBottom).toEqual(true);
+                        expect(dropDownComponent.title).toEqual('Simple');
                     });
 
                     describe('<div> element with', () => {
-                        it('classes "simple drop-down-content"', () => {
+                        it('class "simple-content"', () => {
                             fixture.detectChanges();
 
-                            let divElement = element.query(By.css('.simple-drop-down div.simple.drop-down-content'));
+                            let divElement = element.query(By.css('.simple-drop-down div.simple-content'));
 
                             expect(divElement !== null).toBeTruthy();
                         });
@@ -184,7 +87,7 @@ describe('DropDownPageComponent', () => {
                         it('the expected text', () => {
                             fixture.detectChanges();
 
-                            let divElement = element.query(By.css('.simple.drop-down-content'));
+                            let divElement = element.query(By.css('.simple-content'));
 
                             expect(divElement.nativeElement.textContent).toEqual('This is a simple drop down with no content. Click outside to close.');
                         });
@@ -209,128 +112,29 @@ describe('DropDownPageComponent', () => {
                     expect(divElement.attributes['title']).toEqual('Close from within');
                 });
 
-                describe('<button> element with', () => {
-                    it('class "close-from-within-drop-down-button"', () => {
-                        fixture.detectChanges();
-
-                        let buttonElemenet = element.query(By.css('.box.close-from-within button.close-from-within-drop-down-button'));
-
-                        expect(buttonElemenet !== null).toBeTruthy();
-                    });
-
-                    it('class "open" if the drop down is visible', () => {
-                        component.closeFromWithinDropDownWindowVisible = true;
-                        fixture.detectChanges();
-
-                        let buttonElemenet = element.query(By.css('.close-from-within-drop-down-button'));
-
-                        expect(buttonElemenet.classes['open']).toBeTruthy();
-                    });
-
-                    it('out class "open" if the drop down is not visible', () => {
-                        component.closeFromWithinDropDownWindowVisible = false;
-                        fixture.detectChanges();
-
-                        let buttonElemenet = element.query(By.css('.close-from-within-drop-down-button'));
-
-                        expect(buttonElemenet.classes['open']).toBeFalsy();
-                    });
-
-                    it('the expect text', () => {
-                        fixture.detectChanges();
-
-                        let buttonElemenet = element.query(By.css('.close-from-within-drop-down-button'));
-
-                        expect(buttonElemenet.nativeElement.textContent).toEqual('Close from within');
-                    });
-
-                    it('click handler that toggles the drop down', () => {
-                        fixture.detectChanges();
-                        jest.spyOn(component.closeFromWithinDropDown, 'toggle');
-
-                        let buttonElemenet = element.query(By.css('.close-from-within-drop-down-button'));
-                        buttonElemenet.triggerEventHandler('click', {});
-
-                        expect(component.closeFromWithinDropDown.toggle).toHaveBeenCalled();
-                    });
-                });
-
-                describe('visibility change event listener that', () => {
-                    describe('changes "simpleDropDownVisible" to', () => {
-                        it('"true" when the drop down becomes visible', () => {
-                            fixture.detectChanges();
-
-                            let windowElement = element.query(By.css('.close-from-within-drop-down'));
-                            let windowComponent = windowElement.componentInstance as WindowComponent;
-                            windowComponent.visibleChange.emit(true);
-
-                            expect(component.closeFromWithinDropDownWindowVisible).toEqual(true);
-                        });
-
-                        it('"false" when the drop down becomes invisible', () => {
-                            component.simpleDropDownWindowVisible = true;
-                            fixture.detectChanges();
-
-                            let windowElement = element.query(By.css('.close-from-within-drop-down'));
-                            let windowComponent = windowElement.componentInstance as WindowComponent;
-                            windowComponent.visibleChange.emit(false);
-
-                            expect(component.closeFromWithinDropDownWindowVisible).toEqual(false);
-                        });
-                    });
-                });
-
-                describe('<ngx-window> component with', () => {
+                describe('<ngx-test-drop-down> component with', () => {
                     it('class "close-from-within-drop-down"', () => {
                         fixture.detectChanges();
 
-                        let windowElement = element.query(By.css('ngx-window.close-from-within-drop-down'));
+                        let dropDownElement = element.query(By.css('ngx-test-drop-down.close-from-within-drop-down'));
 
-                        expect(windowElement !== null).toBeTruthy();
+                        expect(dropDownElement !== null).toBeTruthy();
                     });
 
-                    it('"refElement" set to the button', () => {
+                    it('the expected title', () => {
                         fixture.detectChanges();
 
-                        let buttonElement = element.query(By.css('.close-from-within-drop-down-button'));
-                        let windowElement = element.query(By.css('.close-from-within-drop-down'));
-                        let windowComponent = windowElement.componentInstance as WindowComponent;
+                        let dropDownElement = element.query(By.css('.close-from-within-drop-down'));
+                        let dropDownComponent = dropDownElement.componentInstance as DropDownComponent;
 
-                        expect(windowComponent.refElement).toBe(buttonElement.nativeElement);
-                    });
-
-                    it('"width" set to 200', () => {
-                        fixture.detectChanges();
-
-                        let windowElement = element.query(By.css('.close-from-within-drop-down'));
-                        let windowComponent = windowElement.componentInstance as WindowComponent;
-
-                        expect(windowComponent.width).toEqual(200);
-                    });
-
-                    it('"height" set to 250', () => {
-                        fixture.detectChanges();
-
-                        let windowElement = element.query(By.css('.close-from-within-drop-down'));
-                        let windowComponent = windowElement.componentInstance as WindowComponent;
-
-                        expect(windowComponent.height).toEqual(250);
-                    });
-
-                    it('"options" set to bottom alignment', () => {
-                        fixture.detectChanges();
-
-                        let windowElement = element.query(By.css('.close-from-within-drop-down'));
-                        let windowComponent = windowElement.componentInstance as WindowComponent;
-
-                        expect(windowComponent.options?.alignment?.alignToBottom).toEqual(true);
+                        expect(dropDownComponent.title).toEqual('Close from within');
                     });
 
                     describe('<div> element with', () => {
-                        it('classes "close-from-within drop-down-content"', () => {
+                        it('class "close-from-within-content"', () => {
                             fixture.detectChanges();
 
-                            let divElement = element.query(By.css('.close-from-within-drop-down div.close-from-within.drop-down-content'));
+                            let divElement = element.query(By.css('.close-from-within-drop-down div.close-from-within-content'));
 
                             expect(divElement !== null).toBeTruthy();
                         });
@@ -338,16 +142,16 @@ describe('DropDownPageComponent', () => {
                         it('the expected text', () => {
                             fixture.detectChanges();
 
-                            let divElement = element.query(By.css('.close-from-within.drop-down-content'));
+                            let divElement = element.query(By.css('.close-from-within-content'));
 
                             expect(divElement.nativeElement.textContent).toMatch('Click the button below to close the dropdown.');
                         });
 
                         describe('<button> element with', () => {
-                            it('classes "close-button"', () => {
+                            it('class "close-button"', () => {
                                 fixture.detectChanges();
 
-                                let buttonElement = element.query(By.css('.close-from-within.drop-down-content button.close-button'));
+                                let buttonElement = element.query(By.css('.close-from-within-content button.close-button'));
 
                                 expect(buttonElement !== null).toBeTruthy();
                             });
@@ -355,14 +159,14 @@ describe('DropDownPageComponent', () => {
                             it('the expected text', () => {
                                 fixture.detectChanges();
 
-                                let buttonElement = element.query(By.css('.close-from-within.drop-down-content .close-button'));
+                                let buttonElement = element.query(By.css('.close-from-within-content button.close-button'));
 
                                 expect(buttonElement.nativeElement.textContent).toEqual('Close drop down');
                             });
 
                             it('click handler that toggles the closes the window', () => {
                                 fixture.detectChanges();
-                                let buttonElement = element.query(By.css('.close-from-within.drop-down-content .close-button'));
+                                let buttonElement = element.query(By.css('.close-from-within-content .close-button'));
 
                                 let windowCloserDirective = ngMocks.get(buttonElement, WindowCloserDirective);
                                 jest.spyOn(windowCloserDirective, 'close');
@@ -370,6 +174,172 @@ describe('DropDownPageComponent', () => {
                                 buttonElement.triggerEventHandler('click', {});
 
                                 expect(windowCloserDirective.close).toHaveBeenCalled();
+                            });
+                        });
+                    });
+                });
+            });
+
+            describe('<div> element with', () => {
+                it('classes "box child-windows"', () => {
+                    fixture.detectChanges();
+
+                    let divElement = element.query(By.css('.drop-down-page div.box.child-windows'));
+
+                    expect(divElement !== null).toBeTruthy();
+                });
+
+                it('the expected title', () => {
+                    fixture.detectChanges();
+
+                    let divElement = element.query(By.css('.box.child-windows'));
+
+                    expect(divElement.attributes['title']).toEqual('Child windows');
+                });
+
+                describe('<ngx-test-drop-down> component with', () => {
+                    it('class "child-windows-drop-down"', () => {
+                        fixture.detectChanges();
+
+                        let dropDownElement = element.query(By.css('ngx-test-drop-down.child-windows-drop-down'));
+
+                        expect(dropDownElement !== null).toBeTruthy();
+                    });
+
+                    it('the expected title', () => {
+                        fixture.detectChanges();
+
+                        let dropDownElement = element.query(By.css('.child-windows-drop-down'));
+                        let dropDownComponent = dropDownElement.componentInstance as DropDownComponent;
+
+                        expect(dropDownComponent.title).toEqual('Child windows');
+                    });
+
+                    describe('<div> element with', () => {
+                        it('class "child-windows-content"', () => {
+                            fixture.detectChanges();
+
+                            let divElement = element.query(By.css('.child-windows-drop-down div.child-windows-content'));
+
+                            expect(divElement !== null).toBeTruthy();
+                        });
+
+                        it('the expected text', () => {
+                            fixture.detectChanges();
+
+                            let divElement = element.query(By.css('.child-windows-content'));
+
+                            expect(divElement.nativeElement.textContent).toMatch('Click the buttons below to open child windows.');
+                        });
+
+                        describe('<ngx-test-drop-down> component with', () => {
+                            it('class "child-window-1-drop-down"', () => {
+                                fixture.detectChanges();
+
+                                let dropDownElement = element.query(By.css('.child-windows-content ngx-test-drop-down.child-window-1-drop-down'));
+
+                                expect(dropDownElement !== null).toBeTruthy();
+                            });
+
+                            it('the expected title', () => {
+                                fixture.detectChanges();
+
+                                let dropDownElement = element.query(By.css('.child-window-1-drop-down'));
+                                let dropDownComponent = dropDownElement.componentInstance as DropDownComponent;
+
+                                expect(dropDownComponent.title).toEqual('Child #1');
+                            });
+
+                            describe('<div> element with', () => {
+                                it('class "child-window-1-content"', () => {
+                                    fixture.detectChanges();
+
+                                    let divElement = element.query(By.css('.child-window-1-drop-down div.child-window-1-content'));
+
+                                    expect(divElement !== null).toBeTruthy();
+                                });
+
+                                it('the expected text', () => {
+                                    fixture.detectChanges();
+
+                                    let divElement = element.query(By.css('.child-window-1-content'));
+
+                                    expect(divElement.nativeElement.textContent).toMatch('Click the button below to open grandchild window.');
+                                });
+
+                                describe('<ngx-test-drop-down> component with', () => {
+                                    it('class "grandchild-window-drop-down"', () => {
+                                        fixture.detectChanges();
+
+                                        let dropDownElement = element.query(By.css('.child-window-1-content ngx-test-drop-down.grandchild-window-drop-down'));
+
+                                        expect(dropDownElement !== null).toBeTruthy();
+                                    });
+
+                                    it('the expected title', () => {
+                                        fixture.detectChanges();
+
+                                        let dropDownElement = element.query(By.css('.grandchild-window-drop-down'));
+                                        let dropDownComponent = dropDownElement.componentInstance as DropDownComponent;
+
+                                        expect(dropDownComponent.title).toEqual('Grandchild');
+                                    });
+
+                                    describe('<div> element with', () => {
+                                        it('class "grandchild-window-content"', () => {
+                                            fixture.detectChanges();
+
+                                            let divElement = element.query(By.css('.grandchild-window-drop-down div.grandchild-window-content'));
+
+                                            expect(divElement !== null).toBeTruthy();
+                                        });
+
+                                        it('the expected text', () => {
+                                            fixture.detectChanges();
+
+                                            let divElement = element.query(By.css('.grandchild-window-content'));
+
+                                            expect(divElement.nativeElement.textContent).toMatch('This is a simple drop down with no content. Click outside to close.');
+                                        });
+                                    });
+                                });
+                            });
+                        });
+
+                        describe('<ngx-test-drop-down> component with', () => {
+                            it('class "child-window-2-drop-down"', () => {
+                                fixture.detectChanges();
+
+                                let dropDownElement = element.query(By.css('.child-windows-content ngx-test-drop-down.child-window-2-drop-down'));
+
+                                expect(dropDownElement !== null).toBeTruthy();
+                            });
+
+                            it('the expected title', () => {
+                                fixture.detectChanges();
+
+                                let dropDownElement = element.query(By.css('.child-window-2-drop-down'));
+                                let dropDownComponent = dropDownElement.componentInstance as DropDownComponent;
+
+                                expect(dropDownComponent.title).toEqual('Child #2');
+                            });
+
+                            describe('<div> element with', () => {
+                                it('class "child-window-2-content"', () => {
+                                    fixture.detectChanges();
+
+                                    let divElement = element.query(By.css('.child-window-2-drop-down div.child-window-2-content'));
+
+                                    expect(divElement !== null).toBeTruthy();
+                                });
+
+                                it('the expected text', () => {
+                                    fixture.detectChanges();
+
+                                    let divElement = element.query(By.css('.child-window-2-content'));
+
+                                    expect(divElement.nativeElement.textContent).toMatch('This is a simple drop down with no content. Click outside to close.');
+                                });
                             });
                         });
                     });

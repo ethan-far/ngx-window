@@ -8,7 +8,9 @@ describe('WindowService', () => {
 
     let containerMock: ViewContainerRef;
     let templateMock: TemplateRef<any>;
-    let viewMock: ViewRef;
+    let viewMock1: ViewRef;
+    let viewMock2: ViewRef;
+    let viewMock3: ViewRef;
 
     let windowService: WindowService;
 
@@ -19,10 +21,12 @@ describe('WindowService', () => {
     beforeEach(() => {
         templateMock = mock(TemplateRef);
         containerMock = mock(ViewContainerRef);
-        viewMock = mock(ViewRef);
+        viewMock1 = mock(ViewRef);
+        viewMock2 = mock(ViewRef);
+        viewMock3 = mock(ViewRef);
 
-        containerMock.createEmbeddedView = jest.fn().mockReturnValue(viewMock);
-        containerMock.indexOf = jest.fn().mockReturnValue(123);
+        containerMock.createEmbeddedView = jest.fn().mockReturnValueOnce(viewMock1).mockReturnValueOnce(viewMock2).mockReturnValueOnce(viewMock3);
+        containerMock.indexOf = jest.fn().mockImplementation((view: ViewRef) => (view === viewMock1) ? 123 : (view === viewMock2) ? 456 : 789);
         containerMock.remove = jest.fn();
 
         TestBed.configureTestingModule({
@@ -145,10 +149,10 @@ describe('WindowService', () => {
 
             windowService.close(id);
 
-            expect(containerMock.indexOf).toHaveBeenCalledWith(viewMock);
+            expect(containerMock.indexOf).toHaveBeenCalledWith(viewMock1);
         });
 
-        it('does not find the index of the view if the window is not registered', () => {
+        it('does not look for the index of the view if the window is not registered', () => {
             windowService.registerContainer(containerMock);
 
             windowService.close(123);
@@ -199,6 +203,23 @@ describe('WindowService', () => {
                 expect(lastEvent).toBeUndefined();
             });
         });
+
+        it('closes any child windows first', () => {
+            windowService.registerContainer(containerMock);
+            let id1 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), undefined);
+            let id2 = windowService.registerWindow(new ElementRef<HTMLElement>(createDivWithParent(id1)), undefined);
+            let id3 = windowService.registerWindow(new ElementRef<HTMLElement>(createDivWithParent(id2)), undefined);
+
+            windowService.open(id1, templateMock);
+            windowService.open(id2, templateMock);
+            windowService.open(id3, templateMock);
+
+            windowService.close(id1);
+
+            expect(containerMock.remove).toHaveBeenNthCalledWith(1, 789);
+            expect(containerMock.remove).toHaveBeenNthCalledWith(2, 456);
+            expect(containerMock.remove).toHaveBeenNthCalledWith(3, 123);
+        });
     });
 
     describe('closeContainingWindow', () => {
@@ -229,7 +250,7 @@ describe('WindowService', () => {
 
             windowService.closeContainingWindow(outerElement);
 
-            expect(containerMock.indexOf).toHaveBeenCalledWith(viewMock);
+            expect(containerMock.indexOf).toHaveBeenCalledWith(viewMock1);
             expect(containerMock.remove).toHaveBeenCalledWith(123);
         });
 
@@ -238,7 +259,7 @@ describe('WindowService', () => {
 
             windowService.closeContainingWindow(innerElement);
 
-            expect(containerMock.indexOf).toHaveBeenCalledWith(viewMock);
+            expect(containerMock.indexOf).toHaveBeenCalledWith(viewMock1);
             expect(containerMock.remove).toHaveBeenCalledWith(123);
         });
 
@@ -252,3 +273,13 @@ describe('WindowService', () => {
         });
     });
 });
+
+function createDivWithParent(parentId: number) {
+    const innerDiv = document.createElement('div');
+    const outerDiv = document.createElement('div');
+
+    outerDiv.setAttribute('data-window-id', '' + parentId);
+    outerDiv.append(innerDiv);
+
+    return innerDiv;
+}

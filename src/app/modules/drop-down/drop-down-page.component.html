@@ -1,22 +1,32 @@
 <div class="drop-down-page">
     <div class="box simple" title="Simple">
-        <button class="simple-drop-down-button" [ngClass]="{ 'open': simpleDropDownWindowVisible }" (click)="onSimpleDropDownClick()"
-            #simpleDropDownButton>Simple</button>
-        <ngx-window class="simple-drop-down" [refElement]="simpleDropDownButton" [options]="simpleDropDownWindowOptions" [width]="200" [height]="250"
-            (visibleChange)="onSimpleDropDownVisibleChange($event)" #simpleDropDown>
-            <div class="simple drop-down-content">This is a simple drop down with no content. Click outside to close.</div>
-        </ngx-window>
+        <ngx-test-drop-down class="simple-drop-down" [title]="'Simple'">
+            <div class="simple-content">This is a simple drop down with no content. Click outside to close.</div>
+        </ngx-test-drop-down>
     </div>
 
     <div class="box close-from-within" title="Close from within">
-        <button class="close-from-within-drop-down-button" [ngClass]="{ 'open': closeFromWithinDropDownWindowVisible }"
-            (click)="onCloseFromWithinDropDownClick()" #closeFromWithinDropDownButton>Close
-            from within</button>
-        <ngx-window class="close-from-within-drop-down" [refElement]="closeFromWithinDropDownButton" [options]="closeFromWithinDropDownWindowOptions"
-            [width]="200" [height]="250" (visibleChange)="onCloseFromWithinDropDownVisibleChange($event)" #closeFromWithinDropDown>
-            <div class="close-from-within drop-down-content">Click the button below to close the dropdown.
+        <ngx-test-drop-down class="close-from-within-drop-down" [title]="'Close from within'">
+            <div class="close-from-within-content">Click the button below to close the dropdown.
                 <button class="close-button" ngxWindowCloser (click)="onCloseWithinCloseButtonClick()">Close drop down</button>
             </div>
-        </ngx-window>
+        </ngx-test-drop-down>
+    </div>
+
+    <div class="box child-windows" title="Child windows">
+        <ngx-test-drop-down class="child-windows-drop-down" [title]="'Child windows'">
+            <div class="child-windows-content">Click the buttons below to open child windows.
+                <ngx-test-drop-down class="child-window-1-drop-down" [title]="'Child #1'">
+                    <div class="child-window-1-content">Click the button below to open grandchild window.
+                        <ngx-test-drop-down class="grandchild-window-drop-down" [title]="'Grandchild'">
+                            <div class="grandchild-window-content">This is a simple drop down with no content. Click outside to close.</div>
+                        </ngx-test-drop-down>
+                    </div>
+                </ngx-test-drop-down>
+                <ngx-test-drop-down class="child-window-2-drop-down" [title]="'Child #2'">
+                    <div class="child-window-2-content">This is a simple drop down with no content. Click outside to close.</div>
+                </ngx-test-drop-down>
+            </div>
+        </ngx-test-drop-down>
     </div>
 </div>
