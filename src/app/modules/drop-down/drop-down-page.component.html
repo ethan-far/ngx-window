@@ -37,4 +37,20 @@
             </ngx-test-drop-down>
         </div>
     </div>
+
+    <div class="box multi-scroll" title="Multi scroll">
+        <div class="scrollable">
+            <ngx-test-drop-down class="scroll-drop-down-level1" [title]="'Scroll level 1'">
+                <div class="scrollable">
+                    <ngx-test-drop-down class="scroll-drop-down-level2" [title]="'Scroll level 2'">
+                        <div class="scrollable">
+                            <ngx-test-drop-down class="scroll-drop-down-level3" [title]="'Scroll level 3'">
+                                <div class="scrollable">This is the inner most scrollable window.</div>
+                            </ngx-test-drop-down>
+                        </div>
+                    </ngx-test-drop-down>
+                </div>
+            </ngx-test-drop-down>
+        </div>
+    </div>
 </div>

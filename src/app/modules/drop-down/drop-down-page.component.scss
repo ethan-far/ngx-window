@@ -47,19 +47,6 @@
                 content: '\25b2';
             }
         }
-
-        .scrollable {
-            width: calc(100% + 20px);
-            height: 100%;
-            overflow: overlay;
-
-            &::after {
-                content: '';
-                width: 200px;
-                height: 250px;
-                display: block;
-            }
-        }
     }
 }
 
@@ -76,4 +63,24 @@
     flex-wrap: wrap;
     gap: 10px;
     justify-content: space-between;
+}
+
+.scrollable {
+    width: calc(100% + 20px);
+    height: 100%;
+    overflow: overlay;
+
+    &::before {
+        content: '';
+        width: 200px;
+        height: 90px;
+        display: block;
+    }
+
+    &::after {
+        content: '';
+        width: 200px;
+        height: 250px;
+        display: block;
+    }
 }

@@ -50,7 +50,7 @@ export class WindowComponent implements OnInit, OnDestroy {
                 (this.options.alignment?.alignFromBottom ? this.height : 0);
         }
 
-        return Math.round(top);
+        return Math.round((top + Number.EPSILON) * 100) / 100;
     }
 
     get left() {
@@ -64,7 +64,7 @@ export class WindowComponent implements OnInit, OnDestroy {
                 (this.options.alignment?.alignFromRight ? this.width : 0);
         }
 
-        return Math.round(left);
+        return Math.round((left + Number.EPSILON) * 100) / 100;
     }
 
     constructor(private windowService: WindowService, private elementPositionService: ElementPositionService, private elementRef: ElementRef, private changeDetectorRef: ChangeDetectorRef) { }

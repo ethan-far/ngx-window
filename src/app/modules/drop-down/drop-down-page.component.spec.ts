@@ -376,7 +376,7 @@ describe('DropDownPageComponent', () => {
                         it('class "scrolled-drop-down"', () => {
                             fixture.detectChanges();
 
-                            let dropDownElement = element.query(By.css('.scrollable ngx-test-drop-down.scrolled-drop-down'));
+                            let dropDownElement = element.query(By.css('.outside-scroll .scrollable ngx-test-drop-down.scrolled-drop-down'));
 
                             expect(dropDownElement !== null).toBeTruthy();
                         });
@@ -405,6 +405,129 @@ describe('DropDownPageComponent', () => {
                                 let divElement = element.query(By.css('.scrolled-content'));
 
                                 expect(divElement.nativeElement.textContent).toMatch('This drop down is in a scrollable area. It will follow the reference element when scrolled.');
+                            });
+                        });
+                    });
+                });
+            });
+
+            describe('<div> element with', () => {
+                it('classes "box multi-scroll"', () => {
+                    fixture.detectChanges();
+
+                    let divElement = element.query(By.css('.drop-down-page div.box.multi-scroll'));
+
+                    expect(divElement !== null).toBeTruthy();
+                });
+
+                it('the expected title', () => {
+                    fixture.detectChanges();
+
+                    let divElement = element.query(By.css('.box.multi-scroll'));
+
+                    expect(divElement.attributes['title']).toEqual('Multi scroll');
+                });
+
+                describe('<div> element with', () => {
+                    it('classes "scrollable"', () => {
+                        fixture.detectChanges();
+
+                        let divElement = element.query(By.css('.box.multi-scroll div.scrollable'));
+
+                        expect(divElement !== null).toBeTruthy();
+                    });
+
+                    describe('<ngx-test-drop-down> component with', () => {
+                        it('class "scroll-drop-down-level1"', () => {
+                            fixture.detectChanges();
+
+                            let dropDownElement = element.query(By.css('.multi-scroll .scrollable ngx-test-drop-down.scroll-drop-down-level1'));
+
+                            expect(dropDownElement !== null).toBeTruthy();
+                        });
+
+                        it('the expected title', () => {
+                            fixture.detectChanges();
+
+                            let dropDownElement = element.query(By.css('.scroll-drop-down-level1'));
+                            let dropDownComponent = dropDownElement.componentInstance as DropDownComponent;
+
+                            expect(dropDownComponent.title).toEqual('Scroll level 1');
+                        });
+
+                        describe('<div> element with', () => {
+                            it('classes "scrollable"', () => {
+                                fixture.detectChanges();
+
+                                let divElement = element.query(By.css('.scroll-drop-down-level1 div.scrollable'));
+
+                                expect(divElement !== null).toBeTruthy();
+                            });
+
+                            describe('<ngx-test-drop-down> component with', () => {
+                                it('class "scroll-drop-down-level2"', () => {
+                                    fixture.detectChanges();
+
+                                    let dropDownElement = element.query(By.css('.scroll-drop-down-level1 .scrollable ngx-test-drop-down.scroll-drop-down-level2'));
+
+                                    expect(dropDownElement !== null).toBeTruthy();
+                                });
+
+                                it('the expected title', () => {
+                                    fixture.detectChanges();
+
+                                    let dropDownElement = element.query(By.css('.scroll-drop-down-level2'));
+                                    let dropDownComponent = dropDownElement.componentInstance as DropDownComponent;
+
+                                    expect(dropDownComponent.title).toEqual('Scroll level 2');
+                                });
+
+                                describe('<div> element with', () => {
+                                    it('classes "scrollable"', () => {
+                                        fixture.detectChanges();
+
+                                        let divElement = element.query(By.css('.scroll-drop-down-level2 div.scrollable'));
+
+                                        expect(divElement !== null).toBeTruthy();
+                                    });
+
+                                    describe('<ngx-test-drop-down> component with', () => {
+                                        it('class "scroll-drop-down-level3"', () => {
+                                            fixture.detectChanges();
+
+                                            let dropDownElement = element.query(By.css('.scroll-drop-down-level2 .scrollable ngx-test-drop-down.scroll-drop-down-level3'));
+
+                                            expect(dropDownElement !== null).toBeTruthy();
+                                        });
+
+                                        it('the expected title', () => {
+                                            fixture.detectChanges();
+
+                                            let dropDownElement = element.query(By.css('.scroll-drop-down-level3'));
+                                            let dropDownComponent = dropDownElement.componentInstance as DropDownComponent;
+
+                                            expect(dropDownComponent.title).toEqual('Scroll level 3');
+                                        });
+
+                                        describe('<div> element with', () => {
+                                            it('classes "scrollable"', () => {
+                                                fixture.detectChanges();
+
+                                                let divElement = element.query(By.css('.scroll-drop-down-level3 div.scrollable'));
+
+                                                expect(divElement !== null).toBeTruthy();
+                                            });
+
+                                            it('the expected text', () => {
+                                                fixture.detectChanges();
+
+                                                let divElement = element.query(By.css('.scroll-drop-down-level3 .scrollable'));
+
+                                                expect(divElement.nativeElement.textContent).toMatch('This is the inner most scrollable window.');
+                                            });
+                                        });
+                                    });
+                                });
                             });
                         });
                     });
