@@ -282,10 +282,10 @@ describe('WindowComponent', () => {
                         });
                     });
 
-                it('rounded to the nearest pixel', () => {
+                it('rounded to the nearest pixel 100th', () => {
                     component.window.refElement = elementMock;
-                    component.window.topOffset = 50.2;
-                    component.window.leftOffset = 100.7;
+                    component.window.topOffset = 50.002;
+                    component.window.leftOffset = 100.007;
                     component.window.width = 180;
                     component.window.height = 240;
                     fixture.detectChanges();
@@ -293,7 +293,7 @@ describe('WindowComponent', () => {
                     let divElement = element.query(By.css('.window'));
 
                     expect(divElement.styles['top']).toEqual('250px');
-                    expect(divElement.styles['left']).toEqual('201px');
+                    expect(divElement.styles['left']).toEqual('200.01px');
                 });
             });
 
