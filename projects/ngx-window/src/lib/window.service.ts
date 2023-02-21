@@ -1,11 +1,11 @@
-import { ElementRef, Injectable, TemplateRef, ViewContainerRef, ViewRef } from '@angular/core';
+import { ElementRef, EmbeddedViewRef, Injectable, TemplateRef, ViewContainerRef } from '@angular/core';
 import { Subject } from 'rxjs';
 
 interface Window {
     id: number;
     elementRef: ElementRef;
     refElement?: HTMLElement;
-    view?: ViewRef;
+    view?: EmbeddedViewRef<any>;
     children: number[];
 }
 
@@ -38,9 +38,19 @@ export class WindowService {
             });
         }, { capture: true, passive: true });
 
+        document.addEventListener('click', event => {
+            Object
+                .values(this._windows)
+                .filter(window => window.refElement !== event.target && !this.windowContainsEventTarget(window, event))
+                .forEach(window => this.close(window.id));
+        }, { capture: true, passive: true });
+
         this._intersectionObserver = new IntersectionObserver(entries => {
             entries.forEach(entry => {
-                Object.values(this._windows).filter(window => window.refElement === entry.target).forEach(window => this.close(window.id));
+                Object
+                    .values(this._windows)
+                    .filter(window => window.refElement === entry.target)
+                    .forEach(window => this.close(window.id));
             })
         }, { threshold: 1 });
     }
@@ -121,5 +131,14 @@ export class WindowService {
         }
 
         return windowId;
+    }
+
+    private windowContainsEventTarget(window: Window, event: MouseEvent): boolean {
+        // Note: This method is recursive and to some extent wasteful, since the same windows are 
+        //       being checked more than once. Having said that, till there's a reason to believe 
+        //       this actually affects performance, no optimization will be done to avoid over-complicating 
+        //       the implementation
+        return window.view?.rootNodes.find(node => (node instanceof HTMLElement) && (event.target instanceof Node) && node.contains(event.target))
+            || window.children.some(id => this.windowContainsEventTarget(this._windows[id], event));
     }
 }

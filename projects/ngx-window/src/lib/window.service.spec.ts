@@ -1,4 +1,4 @@
-import { ElementRef, TemplateRef, ViewContainerRef, ViewRef } from '@angular/core';
+import { ElementRef, EmbeddedViewRef, TemplateRef, ViewContainerRef, ViewRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { mock } from 'ts-mockito';
 
@@ -29,9 +29,9 @@ describe('WindowService', () => {
 
     let containerMock: ViewContainerRef;
     let templateMock: TemplateRef<any>;
-    let viewMock1: ViewRef;
-    let viewMock2: ViewRef;
-    let viewMock3: ViewRef;
+    let viewMock1: EmbeddedViewRef<any>;
+    let viewMock2: EmbeddedViewRef<any>;
+    let viewMock3: EmbeddedViewRef<any>;
 
     let windowService: WindowService;
 
@@ -44,9 +44,9 @@ describe('WindowService', () => {
 
         templateMock = mock(TemplateRef);
         containerMock = mock(ViewContainerRef);
-        viewMock1 = mock(ViewRef);
-        viewMock2 = mock(ViewRef);
-        viewMock3 = mock(ViewRef);
+        viewMock1 = mock(EmbeddedViewRef);
+        viewMock2 = mock(EmbeddedViewRef);
+        viewMock3 = mock(EmbeddedViewRef);
 
         containerMock.createEmbeddedView = jest.fn().mockReturnValueOnce(viewMock1).mockReturnValueOnce(viewMock2).mockReturnValueOnce(viewMock3);
         containerMock.indexOf = jest.fn().mockImplementation((view: ViewRef) => (view === viewMock1) ? 123 : (view === viewMock2) ? 456 : 789);
@@ -111,6 +111,81 @@ describe('WindowService', () => {
         });
     });
 
+    describe('on click', () => {
+        beforeEach(() => {
+            // Note: It is not good to spy on the unit under test, but since the close functionality is considerable, it's better than repeating all the tests
+            // TODO: Consider refactoring the functionalities of open/close/etc. into sub-services
+            jest.spyOn(windowService, 'close');
+        });
+
+        it('closes all windows', () => {
+            let id1 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), document.createElement('a'));
+            let id2 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), document.createElement('div'));
+            let id3 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), document.createElement('li'));
+
+            document.documentElement.dispatchEvent(new Event('click'));
+
+            expect(windowService.close).toHaveBeenNthCalledWith(1, id1);
+            expect(windowService.close).toHaveBeenNthCalledWith(2, id2);
+            expect(windowService.close).toHaveBeenNthCalledWith(3, id3);
+        });
+
+        describe('does not close a window that', () => {
+            beforeEach(() => {
+                windowService.registerContainer(containerMock);
+            });
+
+            it('references the clicked element', () => {
+                let refElement = document.documentElement.appendChild(document.createElement('div'));
+                let id1 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), document.createElement('a'));
+                let id2 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), refElement);
+                let id3 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), document.createElement('li'));
+
+                refElement.dispatchEvent(new Event('click'));
+
+                expect(windowService.close).toHaveBeenNthCalledWith(1, id1);
+                expect(windowService.close).toHaveBeenNthCalledWith(2, id3);
+                expect(windowService.close).not.toHaveBeenCalledWith(id2);
+            });
+
+            it('contains the clicked element', () => {
+                let outerElement = document.documentElement.appendChild(document.createElement('div'));
+                let innerElement = outerElement.appendChild(document.createElement('a'));
+                Object.defineProperty(viewMock1, 'rootNodes', { value: [outerElement] });
+                let id1 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')));
+                let id2 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')));
+                let id3 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')));
+                windowService.open(id3, templateMock);
+
+                innerElement.dispatchEvent(new Event('click'));
+
+                expect(windowService.close).toHaveBeenNthCalledWith(1, id1);
+                expect(windowService.close).toHaveBeenNthCalledWith(2, id2);
+                expect(windowService.close).not.toHaveBeenCalledWith(id3);
+            });
+
+            it('is an ancestor of the window containing the clicked element', () => {
+                let outerElement = document.documentElement.appendChild(document.createElement('div'));
+                let innerElement = outerElement.appendChild(document.createElement('a'));
+                Object.defineProperty(viewMock1, 'rootNodes', { value: [document.createElement('div')] });
+                Object.defineProperty(viewMock2, 'rootNodes', { value: [document.createElement('div')] });
+                Object.defineProperty(viewMock3, 'rootNodes', { value: [outerElement] });
+                let id1 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), undefined);
+                let id2 = windowService.registerWindow(new ElementRef<HTMLElement>(createDivWithParent(id1)), undefined);
+                let id3 = windowService.registerWindow(new ElementRef<HTMLElement>(createDivWithParent(id2)), undefined);
+                windowService.open(id1, templateMock);
+                windowService.open(id2, templateMock);
+                windowService.open(id3, templateMock);
+
+                innerElement.dispatchEvent(new Event('click'));
+
+                expect(windowService.close).not.toHaveBeenCalledWith(id1);
+                expect(windowService.close).not.toHaveBeenCalledWith(id2);
+                expect(windowService.close).not.toHaveBeenCalledWith(id3);
+            });
+        });
+    });
+
     describe('on intersection', () => {
         it('close any windows referencing the element', () => {
             // Note: It is not good to spy on the unit under test, but since the close functionality is considerable, it's better than repeating all the tests
@@ -160,6 +235,10 @@ describe('WindowService', () => {
             expect(intersectionObserverMock.observe).toHaveBeenNthCalledWith(1, refElement1);
             expect(intersectionObserverMock.observe).toHaveBeenNthCalledWith(2, refElement2);
         });
+    });
+
+    describe('unregisterWindow', () => {
+        // TODO: add tests
     });
 
     describe('isOpen', () => {
