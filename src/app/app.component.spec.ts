@@ -1,10 +1,10 @@
 import { DebugElement } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { RouterOutlet } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
-import { MockDirective } from 'ng-mocks';
+import { MockComponent } from 'ng-mocks';
 import { AppComponent } from './app.component';
+import { LinkComponent } from './link.component';
 
 describe('AppComponent', () => {
 
@@ -18,7 +18,8 @@ describe('AppComponent', () => {
                 RouterTestingModule
             ],
             declarations: [
-                AppComponent
+                AppComponent,
+                MockComponent(LinkComponent)
             ],
         }).compileComponents();
     });
@@ -77,29 +78,87 @@ describe('AppComponent', () => {
                         expect(listElement !== null).toBeTruthy();
                     });
 
-                    describe('<li> element with', () => {
+                    describe('<ngx-test-link> component with', () => {
                         it('class "drop-downs"', () => {
                             fixture.detectChanges();
 
-                            let itemElement = element.query(By.css('.link-list li.drop-downs'));
+                            let linkElement = element.query(By.css('.link-list ngx-test-link.drop-downs'));
 
-                            expect(itemElement !== null).toBeTruthy();
+                            expect(linkElement !== null).toBeTruthy();
                         });
 
-                        it('the expected text', () => {
+                        it('the expected title', () => {
                             fixture.detectChanges();
 
-                            let itemElement = element.query(By.css('.drop-downs'));
+                            let linkElement = element.query(By.css('.drop-downs'));
+                            let linkComponent = linkElement.componentInstance as LinkComponent;
 
-                            expect(itemElement.nativeElement.textContent).toEqual('Drop downs');
+                            expect(linkComponent.title).toEqual('Drop downs');
                         });
 
-                        it('router link to the relevant page', () => {
+                        it('the expected url', () => {
                             fixture.detectChanges();
 
-                            let itemElement = element.query(By.css('.drop-downs'));
+                            let linkElement = element.query(By.css('.drop-downs'));
+                            let linkComponent = linkElement.componentInstance as LinkComponent;
 
-                            expect(itemElement.attributes['routerLink']).toEqual('/drop-downs');
+                            expect(linkComponent.url).toEqual('/drop-downs');
+                        });
+                    });
+
+                    describe('<ngx-test-link> component with', () => {
+                        it('class "resize-and-move"', () => {
+                            fixture.detectChanges();
+
+                            let linkElement = element.query(By.css('.link-list ngx-test-link.resize-and-move'));
+
+                            expect(linkElement !== null).toBeTruthy();
+                        });
+
+                        it('the expected title', () => {
+                            fixture.detectChanges();
+
+                            let linkElement = element.query(By.css('.resize-and-move'));
+                            let linkComponent = linkElement.componentInstance as LinkComponent;
+
+                            expect(linkComponent.title).toEqual('Resize & Move');
+                        });
+
+                        it('the expected url', () => {
+                            fixture.detectChanges();
+
+                            let linkElement = element.query(By.css('.resize-and-move'));
+                            let linkComponent = linkElement.componentInstance as LinkComponent;
+
+                            expect(linkComponent.url).toEqual('/resize-and-move');
+                        });
+                    });
+
+                    describe('<ngx-test-link> component with', () => {
+                        it('class "alignment"', () => {
+                            fixture.detectChanges();
+
+                            let linkElement = element.query(By.css('.link-list ngx-test-link.alignment'));
+
+                            expect(linkElement !== null).toBeTruthy();
+                        });
+
+                        it('the expected title', () => {
+                            fixture.detectChanges();
+
+                            let linkElement = element.query(By.css('.alignment'));
+                            let linkComponent = linkElement.componentInstance as LinkComponent;
+
+                            expect(linkComponent.title).toEqual('Alignment');
+                        });
+
+                        it('the expected url', () => {
+                            fixture.detectChanges();
+
+                            let linkElement = element.query(By.css('.alignment'));
+                            let linkComponent = linkElement.componentInstance as LinkComponent;
+
+                            expect(linkComponent.url).toEqual('/alignment');
                         });
                     });
                 });

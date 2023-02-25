@@ -4,7 +4,9 @@
     </div>
     <nav class="main-navigation">
         <ol class="link-list">
-            <li class="drop-downs" routerLink="/drop-downs">Drop downs</li>
+            <ngx-test-link class="drop-downs" [title]="'Drop downs'" [url]="'/drop-downs'"></ngx-test-link>
+            <ngx-test-link class="resize-and-move" [title]="'Resize & Move'" [url]="'/resize-and-move'"></ngx-test-link>
+            <ngx-test-link class="alignment" [title]="'Alignment'" [url]="'/alignment'"></ngx-test-link>
         </ol>
     </nav>
     <router-outlet class="main-content"></router-outlet>
