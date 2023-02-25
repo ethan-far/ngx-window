@@ -8,7 +8,7 @@ const routes: Routes = [
     { path: 'drop-downs', component: DropDownPageComponent },
     { path: 'resize-and-move', component: ResizeAndMovePageComponent },
     { path: 'alignment', component: AlignmentPageComponent },
-    { path: '', component: DropDownPageComponent },
+    { path: '**', redirectTo: 'drop-downs', pathMatch: 'full' },
 ];
 
 @NgModule({
