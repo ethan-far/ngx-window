@@ -1,5 +1,5 @@
-import { ChangeDetectorRef, Component, ElementRef, EventEmitter, HostListener, Input, OnDestroy, OnInit, Output, TemplateRef, ViewChild, ViewRef } from '@angular/core';
-import { filter, map, mergeWith, Subscription } from 'rxjs';
+import { AfterContentChecked, ChangeDetectorRef, Component, ElementRef, EventEmitter, HostListener, Input, OnDestroy, OnInit, Output, TemplateRef, ViewChild, ViewRef } from '@angular/core';
+import { filter, map, mergeWith, Subscription, tap } from 'rxjs';
 import { ElementPositionService } from './element-position.service';
 import { WindowService } from './window.service';
 
@@ -11,6 +11,7 @@ export interface WindowAlignmentOptions {
 }
 
 export interface WindowOptions {
+    startOpen?: boolean;
     alignment?: WindowAlignmentOptions
 };
 
@@ -19,7 +20,7 @@ export interface WindowOptions {
     templateUrl: './window.component.html',
     styleUrls: ['./window.component.scss']
 })
-export class WindowComponent implements OnInit, OnDestroy {
+export class WindowComponent implements OnInit, AfterContentChecked, OnDestroy {
 
     @ViewChild('template', { static: true })
     private template!: TemplateRef<any>;
@@ -35,6 +36,8 @@ export class WindowComponent implements OnInit, OnDestroy {
 
     private _openSubscription?: Subscription;
     private _moveSubscription?: Subscription;
+
+    private _openedAtLeastOnce: boolean = false;
 
     private _id?: number;
     get id() { return this._id; }
@@ -76,12 +79,21 @@ export class WindowComponent implements OnInit, OnDestroy {
         const closed$ = this.windowService.windowClosed$.pipe(filter(id => id === this._id), map(() => false));
         const moved$ = this.windowService.windowMoved$.pipe(filter(id => id === this._id), map(() => true));
 
-        this._openSubscription = opened$.pipe(mergeWith(closed$)).subscribe(visible => this.visibleChange.emit(visible));
+        this._openSubscription = opened$.pipe(
+            tap(() => { this._openedAtLeastOnce = true; }),
+            mergeWith(closed$)
+        ).subscribe(visible => this.visibleChange.emit(visible));
         this._moveSubscription = moved$.subscribe(() => {
             if (this.windowService.isOpen(this._id!)) {
                 this.changeDetectorRef.detectChanges();
             }
         });
+    }
+
+    ngAfterContentChecked() {
+        if (this.options.startOpen && !this._openedAtLeastOnce) {
+            this.open();
+        }
     }
 
     ngOnDestroy() {

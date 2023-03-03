@@ -46,12 +46,14 @@ export class WindowService {
         }, { capture: true, passive: true });
 
         this._intersectionObserver = new IntersectionObserver(entries => {
-            entries.forEach(entry => {
-                Object
-                    .values(this._windows)
-                    .filter(window => window.refElement === entry.target)
-                    .forEach(window => this.close(window.id));
-            })
+            entries
+                .filter(entry => !entry.isIntersecting)
+                .forEach(entry => {
+                    Object
+                        .values(this._windows)
+                        .filter(window => window.refElement === entry.target)
+                        .forEach(window => this.close(window.id));
+                })
         }, { threshold: 1 });
     }
 
@@ -83,7 +85,7 @@ export class WindowService {
     }
 
     open(id: number, template: TemplateRef<any>) {
-        if (!this.isOpen(id)) {
+        if (this._container && !this.isOpen(id)) {
             const window = this._windows[id];
 
             const view = this._container!.createEmbeddedView(template);

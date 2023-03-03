@@ -210,6 +210,29 @@ describe('WindowService', () => {
             expect(windowService.close).toHaveBeenNthCalledWith(1, id1);
             expect(windowService.close).toHaveBeenNthCalledWith(2, id3);
         });
+
+        it('does not close windows if intersecting is "true"', () => {
+            // Note: It is not good to spy on the unit under test, but since the close functionality is considerable, it's better than repeating all the tests
+            // TODO: Consider refactoring the functionalities of open/close/etc. into sub-services
+            jest.spyOn(windowService, 'close');
+            const refElement = document.createElement('button');
+            const id1 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), refElement);
+            const id2 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')));
+            const id3 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), refElement);
+            const entry = {
+                boundingClientRect: mockDOMRect(),
+                intersectionRatio: 0,
+                intersectionRect: mockDOMRect(),
+                isIntersecting: true,
+                rootBounds: null,
+                target: refElement,
+                time: 0
+            };
+
+            intersectionObserverCallback([entry], intersectionObserverMock);
+
+            expect(windowService.close).not.toHaveBeenCalled();
+        });
     });
 
     describe('registerWindow', () => {
@@ -302,6 +325,26 @@ describe('WindowService', () => {
             expect(lastEvent).toEqual(1);
         });
 
+        describe('if no container was registered', () => {
+            it('does not create a new view if the window is already open', () => {
+                const id = windowService.registerWindow(windowRef, windowRefElement);
+
+                windowService.open(id, templateMock);
+
+                expect(containerMock.createEmbeddedView).not.toHaveBeenCalled();
+            });
+
+            it('does not emit an event with the id of the window', () => {
+                let lastEvent: number | undefined;
+                const id = windowService.registerWindow(windowRef, windowRefElement);
+                windowService.windowOpened$.subscribe(id => lastEvent = id);
+
+                windowService.open(id, templateMock);
+
+                expect(lastEvent).toBeUndefined();
+            });
+        });
+
         describe('if the window is already open', () => {
             it('does not create a new view if the window is already open', () => {
                 windowService.registerContainer(containerMock);
@@ -314,7 +357,7 @@ describe('WindowService', () => {
                 expect(containerMock.createEmbeddedView).not.toHaveBeenCalled();
             });
 
-            it('emits an event with the id of the window', () => {
+            it('does not emit an event with the id of the window', () => {
                 let lastEvent: number | undefined;
                 windowService.registerContainer(containerMock);
                 const id = windowService.registerWindow(windowRef, windowRefElement);

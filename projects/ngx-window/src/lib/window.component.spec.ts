@@ -18,7 +18,6 @@ describe('WindowComponent', () => {
     let elementPositionServiceMock: ElementPositionService;
 
     let elementMock: HTMLElement;
-    let viewMock: ViewRef;
     let containerRef: ViewContainerRef;
 
     let fixture: ComponentFixture<TestHostComponent>;
@@ -38,12 +37,7 @@ describe('WindowComponent', () => {
         jest.spyOn(windowServiceMock, 'registerContainer').mockImplementation(
             (container: ViewContainerRef) => { containerRef = container });
         jest.spyOn(windowServiceMock, 'registerWindow').mockReturnValue(1234);
-        jest.spyOn(windowServiceMock, 'open').mockImplementation(
-            (id: number, template: TemplateRef<any>) => {
-                viewMock = containerRef.createEmbeddedView(template, {});
-
-                return viewMock;
-            });
+        jest.spyOn(windowServiceMock, 'open');
         jest.spyOn(windowServiceMock, 'close');
 
         jest.spyOn(elementPositionServiceMock, 'getPosition').mockReturnValue({
@@ -76,6 +70,55 @@ describe('WindowComponent', () => {
             fixture.detectChanges();
 
             expect(windowServiceMock.registerWindow).toHaveBeenCalledWith(expect.any(ElementRef), elementMock);
+        });
+    });
+
+    describe('after content checked', () => {
+        describe('if the "startOpen" option is set to', () => {
+            describe('"true"', () => {
+                it('tries to open the window', () => {
+                    component.window.options.startOpen = true;
+                    fixture.detectChanges();
+
+                    component.window.ngAfterContentChecked();
+
+                    expect(windowServiceMock.open).toHaveBeenCalledWith(1234, jasmine.any(TemplateRef));
+                });
+
+                it('tries again if was not yet opened', () => {
+                    component.window.options.startOpen = true;
+                    fixture.detectChanges();
+
+                    component.window.ngAfterContentChecked();
+                    component.window.ngAfterContentChecked();
+
+                    // Note: The first call to "ngAfterContentChecked" is due to the change detection
+                    expect(windowServiceMock.open).toHaveBeenCalledTimes(3);
+                });
+
+                it('does not try again if already opened', () => {
+                    component.window.options.startOpen = true;
+                    fixture.detectChanges();
+
+                    component.window.ngAfterContentChecked();
+                    windowServiceMock.windowOpened$.next(1234);
+                    component.window.ngAfterContentChecked();
+
+                    // Note: The first call to "ngAfterContentChecked" is due to the change detection
+                    expect(windowServiceMock.open).toHaveBeenCalledTimes(2);
+                });
+            });
+
+            describe('"false"', () => {
+                it('does not try to open the window', () => {
+                    component.window.options.startOpen = false;
+                    fixture.detectChanges();
+
+                    component.window.ngAfterContentChecked();
+
+                    expect(windowServiceMock.open).not.toHaveBeenCalled();
+                });
+            });
         });
     });
 
@@ -209,6 +252,11 @@ describe('WindowComponent', () => {
     describe('has', () => {
 
         beforeEach(() => {
+            jest.spyOn(windowServiceMock, 'open').mockImplementation(
+                (id: number, template: TemplateRef<any>) => {
+                    containerRef.createEmbeddedView(template, {});
+                });
+
             fixture.detectChanges();
             component.window.open();
         });
@@ -339,15 +387,11 @@ describe('WindowComponent', () => {
     });
 
     describe('contains', () => {
-
-        let fixture: ComponentFixture<TestHostComponent>;
-        let component: TestHostComponent;
-        let element: DebugElement;
-
         beforeEach(() => {
-            fixture = TestBed.createComponent(TestHostComponent);
-            component = fixture.componentInstance;
-            element = fixture.debugElement;
+            jest.spyOn(windowServiceMock, 'open').mockImplementation(
+                (id: number, template: TemplateRef<any>) => {
+                    containerRef.createEmbeddedView(template, {});
+                });
 
             fixture.detectChanges();
             component.window.open();
