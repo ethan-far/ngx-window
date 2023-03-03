@@ -27,8 +27,8 @@ export class WindowComponent implements OnInit, AfterContentChecked, OnDestroy {
 
     @Input() width!: number;
     @Input() height!: number;
-    @Input() topOffset: number = 0;
-    @Input() leftOffset: number = 0;
+    @Input() topOffset: number | 'center' = 0;
+    @Input() leftOffset: number | 'center' = 0;
     @Input() options: WindowOptions = {};
     @Input() refElement?: HTMLElement;
 
@@ -43,31 +43,51 @@ export class WindowComponent implements OnInit, AfterContentChecked, OnDestroy {
     get id() { return this._id; }
 
     get top() {
-        let top = this.topOffset;
+        if (this.topOffset === 'center') {
+            if (this.refElement) {
+                const position = this.elementPositionService.getPosition(this.refElement);
 
-        if (this.refElement) {
-            const position = this.elementPositionService.getPosition(this.refElement);
+                return `${position.top + (position.height - this.height) / 2}px`;
+            } else {
+                return `calc(50vh - ${this.height / 2}px)`;
+            }
+        } else {
+            let top = this.topOffset;
 
-            top += position.top +
-                (this.options.alignment?.alignToBottom ? position.height : 0) -
-                (this.options.alignment?.alignFromBottom ? this.height : 0);
+            if (this.refElement) {
+                const position = this.elementPositionService.getPosition(this.refElement);
+
+                top += position.top +
+                    (this.options.alignment?.alignToBottom ? position.height : 0) -
+                    (this.options.alignment?.alignFromBottom ? this.height : 0);
+            }
+
+            return `${Math.round((top + Number.EPSILON) * 100) / 100}px`;
         }
-
-        return Math.round((top + Number.EPSILON) * 100) / 100;
     }
 
     get left() {
-        let left = this.leftOffset;
+        if (this.leftOffset === 'center') {
+            if (this.refElement) {
+                const position = this.elementPositionService.getPosition(this.refElement);
 
-        if (this.refElement) {
-            const position = this.elementPositionService.getPosition(this.refElement);
+                return `${position.left + (position.width - this.width) / 2}px`;
+            } else {
+                return `calc(50vw - ${this.width / 2}px)`;
+            }
+        } else {
+            let left = this.leftOffset as number;
 
-            left += position.left +
-                (this.options.alignment?.alignToRight ? position.width : 0) -
-                (this.options.alignment?.alignFromRight ? this.width : 0);
+            if (this.refElement) {
+                const position = this.elementPositionService.getPosition(this.refElement);
+
+                left += position.left +
+                    (this.options.alignment?.alignToRight ? position.width : 0) -
+                    (this.options.alignment?.alignFromRight ? this.width : 0);
+            }
+
+            return `${Math.round((left + Number.EPSILON) * 100) / 100}px`;
         }
-
-        return Math.round((left + Number.EPSILON) * 100) / 100;
     }
 
     constructor(private windowService: WindowService, private elementPositionService: ElementPositionService, private elementRef: ElementRef, private changeDetectorRef: ChangeDetectorRef) { }

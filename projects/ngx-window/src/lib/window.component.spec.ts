@@ -279,13 +279,42 @@ describe('WindowComponent', () => {
             });
 
             describe('the "top" and "left" styles', () => {
-                it('set to the values of "topOffset" and "leftOffset" if no reference element', () => {
+                describe('if no reference element', () => {
+                    it('set to the values of "topOffset" and "leftOffset"', () => {
+                        fixture.detectChanges();
+
+                        let divElement = element.query(By.css('.window'));
+
+                        expect(divElement.styles['top']).toEqual('135px');
+                        expect(divElement.styles['left']).toEqual('246px');
+                    });
+
+                    it('set according to the center of the viewport if set to "center"', () => {
+                        component.window.topOffset = 'center';
+                        component.window.leftOffset = 'center';
+                        component.window.width = 150;
+                        component.window.height = 80;
+                        fixture.detectChanges();
+
+                        let divElement = element.query(By.css('.window'));
+
+                        expect(divElement.styles['top']).toEqual('calc(50vh - 40px)');
+                        expect(divElement.styles['left']).toEqual('calc(50vw - 75px)');
+                    });
+                });
+
+                it('set according to the center of the reference element if set to "center"', () => {
+                    component.window.refElement = elementMock;
+                    component.window.topOffset = 'center';
+                    component.window.leftOffset = 'center';
+                    component.window.width = 120;
+                    component.window.height = 260;
                     fixture.detectChanges();
 
                     let divElement = element.query(By.css('.window'));
 
-                    expect(divElement.styles['top']).toEqual('135px');
-                    expect(divElement.styles['left']).toEqual('246px');
+                    expect(divElement.styles['top']).toEqual('220px');
+                    expect(divElement.styles['left']).toEqual('240px');
                 });
 
                 using([
