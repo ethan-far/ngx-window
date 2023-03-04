@@ -75,7 +75,7 @@ export class WindowComponent implements OnInit, AfterContentChecked, OnDestroy {
     }
 
     ngAfterContentChecked() {
-        if (this.options.startOpen && !this._openedAtLeastOnce) {
+        if (this.options.visibility?.startOpen && !this._openedAtLeastOnce) {
             this.open();
         }
     }

@@ -18,12 +18,16 @@ export interface Offset {
     left: number
 }
 
-export interface WindowAlignmentOptions {
+export interface VisibilityOptions {
+    startOpen?: boolean;
+}
+
+export interface AlignmentOptions {
     window?: Alignment;
     reference?: Alignment;
 }
 
 export interface WindowOptions {
-    startOpen?: boolean;
-    alignment?: WindowAlignmentOptions
+    visibility?: VisibilityOptions,
+    alignment?: AlignmentOptions
 };

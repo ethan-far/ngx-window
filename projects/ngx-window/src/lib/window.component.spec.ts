@@ -77,7 +77,7 @@ describe('WindowComponent', () => {
         describe('if the "startOpen" option is set to', () => {
             describe('"true"', () => {
                 it('tries to open the window', () => {
-                    component.window.options.startOpen = true;
+                    component.window.options = { visibility: { startOpen: true } };
                     fixture.detectChanges();
 
                     component.window.ngAfterContentChecked();
@@ -86,7 +86,7 @@ describe('WindowComponent', () => {
                 });
 
                 it('tries again if was not yet opened', () => {
-                    component.window.options.startOpen = true;
+                    component.window.options = { visibility: { startOpen: true } };
                     fixture.detectChanges();
 
                     component.window.ngAfterContentChecked();
@@ -97,7 +97,7 @@ describe('WindowComponent', () => {
                 });
 
                 it('does not try again if already opened', () => {
-                    component.window.options.startOpen = true;
+                    component.window.options = { visibility: { startOpen: true } };
                     fixture.detectChanges();
 
                     component.window.ngAfterContentChecked();
@@ -111,7 +111,7 @@ describe('WindowComponent', () => {
 
             describe('"false"', () => {
                 it('does not try to open the window', () => {
-                    component.window.options.startOpen = false;
+                    component.window.options = { visibility: { startOpen: false } };
                     fixture.detectChanges();
 
                     component.window.ngAfterContentChecked();
