@@ -143,7 +143,7 @@ describe('DropDownComponent', () => {
                 let windowElement = element.query(By.css('.drop-down-window'));
                 let windowComponent = windowElement.componentInstance as WindowComponent;
 
-                expect(windowComponent.options?.alignment?.alignToBottom).toEqual(true);
+                expect(windowComponent.options?.alignment).toEqual({ reference: { vertical: 'bottom' } });
             });
 
             describe('<div> element with', () => {

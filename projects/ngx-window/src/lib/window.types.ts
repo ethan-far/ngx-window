@@ -17,3 +17,13 @@ export interface Offset {
     top: number,
     left: number
 }
+
+export interface WindowAlignmentOptions {
+    window?: Alignment;
+    reference?: Alignment;
+}
+
+export interface WindowOptions {
+    startOpen?: boolean;
+    alignment?: WindowAlignmentOptions
+};

@@ -1,19 +1,9 @@
 import { AfterContentChecked, ChangeDetectorRef, Component, ElementRef, EventEmitter, HostListener, Input, OnDestroy, OnInit, Output, TemplateRef, ViewChild, ViewRef } from '@angular/core';
 import { filter, map, mergeWith, Subscription, tap } from 'rxjs';
+import { AlignmentService } from './alignment.service';
 import { ElementPositionService } from './element-position.service';
 import { WindowService } from './window.service';
-
-export interface WindowAlignmentOptions {
-    alignToBottom?: boolean;
-    alignToRight?: boolean;
-    alignFromBottom?: boolean;
-    alignFromRight?: boolean;
-}
-
-export interface WindowOptions {
-    startOpen?: boolean;
-    alignment?: WindowAlignmentOptions
-};
+import { WindowOptions } from './window.types';
 
 @Component({
     selector: 'ngx-window',
@@ -27,8 +17,8 @@ export class WindowComponent implements OnInit, AfterContentChecked, OnDestroy {
 
     @Input() width!: number;
     @Input() height!: number;
-    @Input() topOffset: number | 'center' = 0;
-    @Input() leftOffset: number | 'center' = 0;
+    @Input() topOffset: number = 0;
+    @Input() leftOffset: number = 0;
     @Input() options: WindowOptions = {};
     @Input() refElement?: HTMLElement;
 
@@ -43,54 +33,28 @@ export class WindowComponent implements OnInit, AfterContentChecked, OnDestroy {
     get id() { return this._id; }
 
     get top() {
-        if (this.topOffset === 'center') {
-            if (this.refElement) {
-                const position = this.elementPositionService.getPosition(this.refElement);
+        let offset = this.alignmentService.align(
+            { top: (this.topOffset as number), left: (this.leftOffset as number), width: this.width, height: this.height },
+            this.options.alignment?.window,
+            this.refElement ? this.elementPositionService.getPosition(this.refElement) : undefined,
+            this.options.alignment?.reference)
 
-                return `${position.top + (position.height - this.height) / 2}px`;
-            } else {
-                return `calc(50vh - ${this.height / 2}px)`;
-            }
-        } else {
-            let top = this.topOffset;
-
-            if (this.refElement) {
-                const position = this.elementPositionService.getPosition(this.refElement);
-
-                top += position.top +
-                    (this.options.alignment?.alignToBottom ? position.height : 0) -
-                    (this.options.alignment?.alignFromBottom ? this.height : 0);
-            }
-
-            return `${Math.round((top + Number.EPSILON) * 100) / 100}px`;
-        }
+        return Math.round((offset.top + Number.EPSILON) * 100) / 100;
     }
 
     get left() {
-        if (this.leftOffset === 'center') {
-            if (this.refElement) {
-                const position = this.elementPositionService.getPosition(this.refElement);
+        let offset = this.alignmentService.align(
+            { top: (this.topOffset as number), left: (this.leftOffset as number), width: this.width, height: this.height },
+            this.options.alignment?.window,
+            this.refElement ? this.elementPositionService.getPosition(this.refElement) : undefined,
+            this.options.alignment?.reference)
 
-                return `${position.left + (position.width - this.width) / 2}px`;
-            } else {
-                return `calc(50vw - ${this.width / 2}px)`;
-            }
-        } else {
-            let left = this.leftOffset as number;
-
-            if (this.refElement) {
-                const position = this.elementPositionService.getPosition(this.refElement);
-
-                left += position.left +
-                    (this.options.alignment?.alignToRight ? position.width : 0) -
-                    (this.options.alignment?.alignFromRight ? this.width : 0);
-            }
-
-            return `${Math.round((left + Number.EPSILON) * 100) / 100}px`;
-        }
+        return Math.round((offset.left + Number.EPSILON) * 100) / 100;
     }
 
-    constructor(private windowService: WindowService, private elementPositionService: ElementPositionService, private elementRef: ElementRef, private changeDetectorRef: ChangeDetectorRef) { }
+    constructor(private windowService: WindowService, private elementPositionService: ElementPositionService,
+        private alignmentService: AlignmentService, private elementRef: ElementRef,
+        private changeDetectorRef: ChangeDetectorRef) { }
 
     ngOnInit() {
         this._id = this.windowService.registerWindow(this.elementRef, this.refElement);

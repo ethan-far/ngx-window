@@ -1,21 +1,19 @@
-import { Component, DebugElement, ElementRef, OnInit, TemplateRef, ViewChild, ViewContainerRef, ViewRef } from '@angular/core';
+import { Component, DebugElement, ElementRef, OnInit, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { Subject } from 'rxjs';
 import { mock } from 'ts-mockito';
+import { AlignmentService } from './alignment.service';
 import { ElementPositionService } from './element-position.service';
 
 import { WindowComponent } from './window.component';
 import { WindowService } from './window.service';
 
-function using<CASES extends Array<ARGS>, ARGS extends Array<any>>(parameters: CASES, testFn: (...args: ARGS) => void) {
-    parameters.forEach((param) => { testFn.apply(null, param); });
-}
-
 describe('WindowComponent', () => {
 
     let windowServiceMock: WindowService;
     let elementPositionServiceMock: ElementPositionService;
+    let alignmentServiceMock: AlignmentService;
 
     let elementMock: HTMLElement;
     let containerRef: ViewContainerRef;
@@ -31,6 +29,7 @@ describe('WindowComponent', () => {
         Object.defineProperty(windowServiceMock, 'windowMoved$', { value: new Subject() });
 
         elementPositionServiceMock = mock(ElementPositionService);
+        alignmentServiceMock = mock(AlignmentService);
 
         elementMock = document.createElement('div');
 
@@ -50,7 +49,8 @@ describe('WindowComponent', () => {
             ],
             providers: [
                 { provide: WindowService, useFactory: () => windowServiceMock },
-                { provide: ElementPositionService, useFactory: () => elementPositionServiceMock }
+                { provide: ElementPositionService, useFactory: () => elementPositionServiceMock },
+                { provide: AlignmentService, useFactory: () => alignmentServiceMock }
             ]
         }).compileComponents();
     }));
@@ -279,92 +279,35 @@ describe('WindowComponent', () => {
             });
 
             describe('the "top" and "left" styles', () => {
-                describe('if no reference element', () => {
-                    it('set to the values of "topOffset" and "leftOffset"', () => {
-                        fixture.detectChanges();
-
-                        let divElement = element.query(By.css('.window'));
-
-                        expect(divElement.styles['top']).toEqual('135px');
-                        expect(divElement.styles['left']).toEqual('246px');
-                    });
-
-                    it('set according to the center of the viewport if set to "center"', () => {
-                        component.window.topOffset = 'center';
-                        component.window.leftOffset = 'center';
-                        component.window.width = 150;
-                        component.window.height = 80;
-                        fixture.detectChanges();
-
-                        let divElement = element.query(By.css('.window'));
-
-                        expect(divElement.styles['top']).toEqual('calc(50vh - 40px)');
-                        expect(divElement.styles['left']).toEqual('calc(50vw - 75px)');
-                    });
-                });
-
-                it('set according to the center of the reference element if set to "center"', () => {
+                it('to the offset after alignment', () => {
+                    jest.spyOn(alignmentServiceMock, 'align').mockReturnValue({ top: 123, left: 456 });
+                    component.window.topOffset = 50;
+                    component.window.leftOffset = 100;
+                    component.window.width = 180;
+                    component.window.height = 240;
                     component.window.refElement = elementMock;
-                    component.window.topOffset = 'center';
-                    component.window.leftOffset = 'center';
-                    component.window.width = 120;
-                    component.window.height = 260;
+                    component.window.options = {
+                        alignment: {
+                            window: { horizontal: 'left', vertical: 'center' },
+                            reference: { horizontal: 'right', vertical: 'bottom' }
+                        }
+                    };
                     fixture.detectChanges();
 
                     let divElement = element.query(By.css('.window'));
 
-                    expect(divElement.styles['top']).toEqual('220px');
-                    expect(divElement.styles['left']).toEqual('240px');
+                    expect(alignmentServiceMock.align).toHaveBeenCalledWith(
+                        { top: 50, left: 100, width: 180, height: 240 },
+                        { horizontal: 'left', vertical: 'center' },
+                        { top: 200, left: 100, width: 400, height: 300 },
+                        { horizontal: 'right', vertical: 'bottom' }
+                    );
+                    expect(divElement.styles['top']).toEqual('123px');
+                    expect(divElement.styles['left']).toEqual('456px');
                 });
 
-                using([
-                    ['top left', false, false, false, false, 250, 200],
-                    ['top right', false, true, false, false, 250, 600],
-                    ['bottom left', true, false, false, false, 550, 200],
-                    ['bottom right', true, true, false, false, 550, 600],
-                    ['top left', false, false, true, false, 10, 200],
-                    ['top right', false, true, true, false, 10, 600],
-                    ['bottom left', true, false, true, false, 310, 200],
-                    ['bottom right', true, true, true, false, 310, 600],
-                    ['top left', false, false, false, true, 250, 20],
-                    ['top right', false, true, false, true, 250, 420],
-                    ['bottom left', true, false, false, true, 550, 20],
-                    ['bottom right', true, true, false, true, 550, 420],
-                    ['top left', false, false, true, true, 10, 20],
-                    ['top right', false, true, true, true, 10, 420],
-                    ['bottom left', true, false, true, true, 310, 20],
-                    ['bottom right', true, true, true, true, 310, 420],
-                ],
-                    (alignment: string, alignToBottom: boolean,
-                        alignToRight: boolean, alignFromBottom: boolean,
-                        alignFromRight: boolean, expectedTop: number,
-                        expectedLeft: number) => {
-                        it(`are aligned to the reference element's ${alignToBottom ? 'bottom' : 'top'} ${alignToRight ? 'right' : 'left'}`, () => {
-                            component.window.refElement = elementMock;
-                            component.window.topOffset = 50;
-                            component.window.leftOffset = 100;
-                            component.window.width = 180;
-                            component.window.height = 240;
-                            component.window.options = {
-                                alignment: {
-                                    alignToBottom, alignToRight, alignFromBottom, alignFromRight
-                                }
-                            };
-                            fixture.detectChanges();
-
-                            let divElement = element.query(By.css('.window'));
-
-                            expect(divElement.styles['top']).toEqual(`${expectedTop}px`);
-                            expect(divElement.styles['left']).toEqual(`${expectedLeft}px`);
-                        });
-                    });
-
                 it('rounded to the nearest pixel 100th', () => {
-                    component.window.refElement = elementMock;
-                    component.window.topOffset = 50.002;
-                    component.window.leftOffset = 100.007;
-                    component.window.width = 180;
-                    component.window.height = 240;
+                    jest.spyOn(alignmentServiceMock, 'align').mockReturnValue({ top: 250.002, left: 200.007 });
                     fixture.detectChanges();
 
                     let divElement = element.query(By.css('.window'));

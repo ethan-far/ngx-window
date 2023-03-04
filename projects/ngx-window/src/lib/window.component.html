@@ -1,6 +1,6 @@
 <ng-template #template>
     <div class="window" [attr.data-window-id]="id" [style.width.px]="width" [style.height.px]="height"
-        [style.top]="top" [style.left]="left" (click)="onClick($event)">
+        [style.top.px]="top" [style.left.px]="left" (click)="onClick($event)">
         <ng-content windowContent></ng-content>
     </div>
 </ng-template>
