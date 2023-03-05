@@ -18,8 +18,13 @@ export interface Offset {
     left: number
 }
 
+export interface KeepOpenOptions {
+    onClickOutside?: boolean;
+}
+
 export interface VisibilityOptions {
     startOpen?: boolean;
+    keepOpen?: KeepOpenOptions;
 }
 
 export interface AlignmentOptions {

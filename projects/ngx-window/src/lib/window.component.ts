@@ -57,7 +57,7 @@ export class WindowComponent implements OnInit, AfterContentChecked, OnDestroy {
         private changeDetectorRef: ChangeDetectorRef) { }
 
     ngOnInit() {
-        this._id = this.windowService.registerWindow(this.elementRef, this.refElement);
+        this._id = this.windowService.registerWindow(this.elementRef, this.refElement, this.options.visibility?.keepOpen);
 
         const opened$ = this.windowService.windowOpened$.pipe(filter(id => id === this._id), map(() => true));
         const closed$ = this.windowService.windowClosed$.pipe(filter(id => id === this._id), map(() => false));

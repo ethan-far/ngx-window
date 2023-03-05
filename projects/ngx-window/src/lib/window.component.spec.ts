@@ -65,11 +65,18 @@ describe('WindowComponent', () => {
         it('registers the window', () => {
             const elementMock = document.createElement('span');
             component.window.refElement = elementMock;
+            component.window.options = {
+                visibility: {
+                    keepOpen: {
+                        onClickOutside: true
+                    }
+                }
+            };
 
             jest.spyOn(windowServiceMock, 'registerWindow');
             fixture.detectChanges();
 
-            expect(windowServiceMock.registerWindow).toHaveBeenCalledWith(expect.any(ElementRef), elementMock);
+            expect(windowServiceMock.registerWindow).toHaveBeenCalledWith(expect.any(ElementRef), elementMock, { onClickOutside: true });
         });
     });
 

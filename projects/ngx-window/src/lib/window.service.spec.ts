@@ -183,6 +183,19 @@ describe('WindowService', () => {
                 expect(windowService.close).not.toHaveBeenCalledWith(id2);
                 expect(windowService.close).not.toHaveBeenCalledWith(id3);
             });
+
+            it('should be kept open when clicked outside', () => {
+                let refElement = document.documentElement.appendChild(document.createElement('div'));
+                let id1 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')));
+                let id2 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), undefined, { onClickOutside: true });
+                let id3 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), undefined, { onClickOutside: false });
+
+                refElement.dispatchEvent(new Event('click'));
+
+                expect(windowService.close).toHaveBeenNthCalledWith(1, id1);
+                expect(windowService.close).toHaveBeenNthCalledWith(2, id3);
+                expect(windowService.close).not.toHaveBeenCalledWith(id2);
+            });
         });
     });
 
@@ -216,9 +229,9 @@ describe('WindowService', () => {
             // TODO: Consider refactoring the functionalities of open/close/etc. into sub-services
             jest.spyOn(windowService, 'close');
             const refElement = document.createElement('button');
-            const id1 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), refElement);
-            const id2 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')));
-            const id3 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), refElement);
+            windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), refElement);
+            windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')));
+            windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), refElement);
             const entry = {
                 boundingClientRect: mockDOMRect(),
                 intersectionRatio: 0,

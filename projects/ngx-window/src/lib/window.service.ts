@@ -1,5 +1,6 @@
 import { ElementRef, EmbeddedViewRef, Injectable, TemplateRef, ViewContainerRef } from '@angular/core';
 import { Subject } from 'rxjs';
+import { KeepOpenOptions } from './window.types';
 
 interface Window {
     id: number;
@@ -7,6 +8,7 @@ interface Window {
     refElement?: HTMLElement;
     view?: EmbeddedViewRef<any>;
     children: number[];
+    keepOpen?: KeepOpenOptions;
 }
 
 @Injectable({
@@ -41,7 +43,11 @@ export class WindowService {
         document.addEventListener('click', event => {
             Object
                 .values(this._windows)
-                .filter(window => window.refElement !== event.target && !this.windowContainsEventTarget(window, event))
+                .filter(window =>
+                    !window.keepOpen?.onClickOutside &&
+                    window.refElement !== event.target &&
+                    !this.windowContainsEventTarget(window, event)
+                )
                 .forEach(window => this.close(window.id));
         }, { capture: true, passive: true });
 
@@ -61,7 +67,7 @@ export class WindowService {
         this._container = container;
     }
 
-    registerWindow(elementRef: ElementRef<HTMLElement>, refElement?: HTMLElement): number {
+    registerWindow(elementRef: ElementRef<HTMLElement>, refElement?: HTMLElement, keepOpen?: KeepOpenOptions): number {
         if (refElement) {
             this._intersectionObserver.observe(refElement);
         }
@@ -72,7 +78,8 @@ export class WindowService {
             id,
             elementRef,
             refElement,
-            children: []
+            children: [],
+            keepOpen
         };
 
         return id;
