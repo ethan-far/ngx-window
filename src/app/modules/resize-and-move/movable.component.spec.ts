@@ -32,6 +32,14 @@ describe('MovableComponent', () => {
 
                 expect(divElement !== null).toBeTruthy();
             });
+
+            it('the expected text', () => {
+                fixture.detectChanges();
+
+                let divElement = element.query(By.css('.movable'));
+
+                expect(divElement.nativeElement.textContent).toMatch('Move me');
+            });
         });
     });
 });

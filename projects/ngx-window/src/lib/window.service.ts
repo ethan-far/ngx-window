@@ -26,6 +26,7 @@ export class WindowService {
     private _windows: { [id: number]: Window } = {};
 
     private _intersectionObserver: IntersectionObserver;
+    private _resizeObserver: ResizeObserver;
 
     constructor() {
         // One listener to scroll events that get them at the capture stage (before they reach the scrolled element) 
@@ -61,6 +62,15 @@ export class WindowService {
                         .forEach(window => this.close(window.id));
                 })
         }, { threshold: 1 });
+
+        this._resizeObserver = new ResizeObserver(entries => {
+            entries.forEach(entry => {
+                Object
+                    .values(this._windows)
+                    .filter(window => window.refElement === entry.target || (window.refElement && entry.target.contains(window.refElement)))
+                    .forEach(window => this.windowMoved$.next(window.id));
+            });
+        });
     }
 
     registerContainer(container: ViewContainerRef) {
@@ -69,6 +79,7 @@ export class WindowService {
 
     registerWindow(elementRef: ElementRef<HTMLElement>, refElement?: HTMLElement, keepOpen?: KeepOpenOptions): number {
         if (refElement) {
+            this._resizeObserver.observe(refElement);
             this._intersectionObserver.observe(refElement);
         }
 

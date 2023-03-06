@@ -1,4 +1,4 @@
-import { AfterContentChecked, ChangeDetectorRef, Component, ElementRef, EventEmitter, HostListener, Input, OnDestroy, OnInit, Output, TemplateRef, ViewChild, ViewRef } from '@angular/core';
+import { AfterContentChecked, ChangeDetectorRef, Component, ElementRef, EventEmitter, HostListener, Input, NgZone, OnDestroy, OnInit, Output, TemplateRef, ViewChild, ViewRef } from '@angular/core';
 import { filter, map, mergeWith, Subscription, tap } from 'rxjs';
 import { AlignmentService } from './alignment.service';
 import { ElementPositionService } from './element-position.service';
@@ -54,7 +54,7 @@ export class WindowComponent implements OnInit, AfterContentChecked, OnDestroy {
 
     constructor(private windowService: WindowService, private elementPositionService: ElementPositionService,
         private alignmentService: AlignmentService, private elementRef: ElementRef,
-        private changeDetectorRef: ChangeDetectorRef) { }
+        private changeDetectorRef: ChangeDetectorRef, private ngZone: NgZone) { }
 
     ngOnInit() {
         this._id = this.windowService.registerWindow(this.elementRef, this.refElement, this.options.visibility?.keepOpen);
@@ -69,7 +69,9 @@ export class WindowComponent implements OnInit, AfterContentChecked, OnDestroy {
         ).subscribe(visible => this.visibleChange.emit(visible));
         this._moveSubscription = moved$.subscribe(() => {
             if (this.windowService.isOpen(this._id!)) {
-                this.changeDetectorRef.detectChanges();
+                this.ngZone.run(() => {
+                    this.changeDetectorRef.detectChanges();
+                });
             }
         });
     }
