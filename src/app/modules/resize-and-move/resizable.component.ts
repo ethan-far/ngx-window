@@ -11,7 +11,8 @@ export class ResizableComponent {
         visibility: {
             startOpen: true,
             keepOpen: {
-                onClickOutside: true
+                onClickOutside: true,
+                onIntersection: true
             }
         },
         alignment: {
@@ -24,7 +25,8 @@ export class ResizableComponent {
         visibility: {
             startOpen: true,
             keepOpen: {
-                onClickOutside: true
+                onClickOutside: true,
+                onIntersection: true
             }
         },
         alignment: {
@@ -37,7 +39,8 @@ export class ResizableComponent {
         visibility: {
             startOpen: true,
             keepOpen: {
-                onClickOutside: true
+                onClickOutside: true,
+                onIntersection: true
             }
         },
         alignment: {
@@ -50,7 +53,8 @@ export class ResizableComponent {
         visibility: {
             startOpen: true,
             keepOpen: {
-                onClickOutside: true
+                onClickOutside: true,
+                onIntersection: true
             }
         },
         alignment: {

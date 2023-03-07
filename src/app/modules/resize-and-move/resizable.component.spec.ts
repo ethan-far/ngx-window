@@ -110,7 +110,8 @@ describe('ResizableComponent', () => {
                     visibility: {
                         startOpen: true,
                         keepOpen: {
-                            onClickOutside: true
+                            onClickOutside: true,
+                            onIntersection: true
                         }
                     },
                     alignment: {
@@ -209,7 +210,8 @@ describe('ResizableComponent', () => {
                     visibility: {
                         startOpen: true,
                         keepOpen: {
-                            onClickOutside: true
+                            onClickOutside: true,
+                            onIntersection: true
                         }
                     },
                     alignment: {
@@ -308,7 +310,8 @@ describe('ResizableComponent', () => {
                     visibility: {
                         startOpen: true,
                         keepOpen: {
-                            onClickOutside: true
+                            onClickOutside: true,
+                            onIntersection: true
                         }
                     },
                     alignment: {
@@ -407,7 +410,8 @@ describe('ResizableComponent', () => {
                     visibility: {
                         startOpen: true,
                         keepOpen: {
-                            onClickOutside: true
+                            onClickOutside: true,
+                            onIntersection: true
                         }
                     },
                     alignment: {

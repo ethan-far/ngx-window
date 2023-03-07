@@ -58,7 +58,7 @@ export class WindowService {
                 .forEach(entry => {
                     Object
                         .values(this._windows)
-                        .filter(window => window.refElement === entry.target)
+                        .filter(window => !window.keepOpen?.onIntersection && window.refElement === entry.target)
                         .forEach(window => this.close(window.id));
                 })
         }, { threshold: 1 });

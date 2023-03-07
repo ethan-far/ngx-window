@@ -310,6 +310,31 @@ describe('WindowService', () => {
         });
 
         describe('does not close windows if', () => {
+            it('supposed to keep it open', () => {
+                // Note: It is not good to spy on the unit under test, but since the close functionality is considerable, it's better than repeating all the tests
+                // TODO: Consider refactoring the functionalities of open/close/etc. into sub-services
+                jest.spyOn(windowService, 'close');
+                const refElement = document.createElement('button');
+                let id1 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), refElement, { onIntersection: false });
+                let id2 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), refElement, { onIntersection: true });
+                let id3 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), refElement, { onIntersection: false });
+                const entry = {
+                    boundingClientRect: mockDOMRect(),
+                    intersectionRatio: 0,
+                    intersectionRect: mockDOMRect(),
+                    isIntersecting: false,
+                    rootBounds: null,
+                    target: refElement,
+                    time: 0
+                };
+
+                intersectionObserverCallback([entry], intersectionObserverMock);
+
+                expect(windowService.close).toHaveBeenNthCalledWith(1, id1);
+                expect(windowService.close).not.toHaveBeenCalledWith(id2);
+                expect(windowService.close).toHaveBeenNthCalledWith(2, id3);
+            });
+
             it('does not close windows if intersecting is "true"', () => {
                 // Note: It is not good to spy on the unit under test, but since the close functionality is considerable, it's better than repeating all the tests
                 // TODO: Consider refactoring the functionalities of open/close/etc. into sub-services

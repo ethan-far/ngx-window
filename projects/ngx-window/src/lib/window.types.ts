@@ -20,6 +20,7 @@ export interface Offset {
 
 export interface KeepOpenOptions {
     onClickOutside?: boolean;
+    onIntersection?: boolean;
 }
 
 export interface VisibilityOptions {
