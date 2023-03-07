@@ -1,5 +1,6 @@
-import { ElementRef, EmbeddedViewRef, Injectable, TemplateRef, ViewContainerRef } from '@angular/core';
-import { Subject } from 'rxjs';
+import { ElementRef, EmbeddedViewRef, Injectable, OnDestroy, TemplateRef, ViewContainerRef } from '@angular/core';
+import { NavigationStart, Router } from '@angular/router';
+import { filter, Subject, Subscription } from 'rxjs';
 import { KeepOpenOptions } from './window.types';
 
 interface Window {
@@ -14,7 +15,7 @@ interface Window {
 @Injectable({
     providedIn: 'root'
 })
-export class WindowService {
+export class WindowService implements OnDestroy {
 
     readonly windowOpened$: Subject<number> = new Subject();
     readonly windowClosed$: Subject<number> = new Subject();
@@ -28,7 +29,15 @@ export class WindowService {
     private _intersectionObserver: IntersectionObserver;
     private _resizeObserver: ResizeObserver;
 
-    constructor() {
+    private _subscription: Subscription;
+
+    constructor(private router: Router) {
+        this._subscription = router.events
+            .pipe(filter(event => event instanceof NavigationStart))
+            .subscribe(() => {
+                Object.values(this._windows).forEach(window => this.close(window.id));
+            });
+
         // One listener to scroll events that get them at the capture stage (before they reach the scrolled element) 
         // is much more efficient, especially when passive (cannot interfere with the event propagation cycle).
         // Moreover, instead of performing actions on the event thread, it emits the values on an Observable to
@@ -71,6 +80,10 @@ export class WindowService {
                     .forEach(window => this.windowMoved$.next(window.id));
             });
         });
+    }
+
+    ngOnDestroy(): void {
+        this._subscription?.unsubscribe();
     }
 
     registerContainer(container: ViewContainerRef) {

@@ -1,5 +1,7 @@
 import { ElementRef, EmbeddedViewRef, TemplateRef, ViewContainerRef, ViewRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { Router } from '@angular/router';
+import { RouterTestingModule } from '@angular/router/testing';
 import { mock } from 'ts-mockito';
 
 import { WindowService } from './window.service';
@@ -53,6 +55,8 @@ describe('WindowService', () => {
     let windowRef: ElementRef<HTMLElement>;
     let windowRefElement: HTMLElement;
 
+    let router: Router;
+
     beforeEach(() => {
         global.IntersectionObserver = IntersectionObserverMock;
         global.ResizeObserver = ResizeObserverMock;
@@ -68,6 +72,9 @@ describe('WindowService', () => {
         containerMock.remove = jest.fn();
 
         TestBed.configureTestingModule({
+            imports: [
+                RouterTestingModule.withRoutes([{ path: 'test-route', redirectTo: '/' }])
+            ],
             providers: [
                 WindowService
             ]
@@ -78,6 +85,8 @@ describe('WindowService', () => {
         windowElement = document.createElement('div');
         windowRef = new ElementRef(windowElement);
         windowRefElement = document.createElement('span');
+
+        router = TestBed.inject(Router);
     });
 
     describe('on init', () => {
@@ -88,6 +97,26 @@ describe('WindowService', () => {
 
         it('creates a resize observer', () => {
             expect(resizeObserverMock).toBeDefined();
+        });
+    });
+
+    describe('on routing', () => {
+        beforeEach(() => {
+            // Note: It is not good to spy on the unit under test, but since the close functionality is considerable, it's better than repeating all the tests
+            // TODO: Consider refactoring the functionalities of open/close/etc. into sub-services
+            jest.spyOn(windowService, 'close');
+        });
+
+        it('closes all windows', () => {
+            let id1 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), document.createElement('a'));
+            let id2 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), document.createElement('div'));
+            let id3 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), document.createElement('li'));
+
+            router.navigate(['test-route']);
+
+            expect(windowService.close).toHaveBeenNthCalledWith(1, id1);
+            expect(windowService.close).toHaveBeenNthCalledWith(2, id2);
+            expect(windowService.close).toHaveBeenNthCalledWith(3, id3);
         });
     });
 
@@ -285,10 +314,13 @@ describe('WindowService', () => {
     });
 
     describe('on intersection', () => {
-        it('close any windows referencing the element', () => {
+        beforeEach(() => {
             // Note: It is not good to spy on the unit under test, but since the close functionality is considerable, it's better than repeating all the tests
             // TODO: Consider refactoring the functionalities of open/close/etc. into sub-services
             jest.spyOn(windowService, 'close');
+        });
+
+        it('close any windows referencing the element', () => {
             const refElement = document.createElement('button');
             const id1 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), refElement);
             const id2 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')));
@@ -311,9 +343,6 @@ describe('WindowService', () => {
 
         describe('does not close windows if', () => {
             it('supposed to keep it open', () => {
-                // Note: It is not good to spy on the unit under test, but since the close functionality is considerable, it's better than repeating all the tests
-                // TODO: Consider refactoring the functionalities of open/close/etc. into sub-services
-                jest.spyOn(windowService, 'close');
                 const refElement = document.createElement('button');
                 let id1 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), refElement, { onIntersection: false });
                 let id2 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), refElement, { onIntersection: true });
@@ -336,9 +365,6 @@ describe('WindowService', () => {
             });
 
             it('does not close windows if intersecting is "true"', () => {
-                // Note: It is not good to spy on the unit under test, but since the close functionality is considerable, it's better than repeating all the tests
-                // TODO: Consider refactoring the functionalities of open/close/etc. into sub-services
-                jest.spyOn(windowService, 'close');
                 const refElement = document.createElement('button');
                 windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), refElement);
                 windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')));
