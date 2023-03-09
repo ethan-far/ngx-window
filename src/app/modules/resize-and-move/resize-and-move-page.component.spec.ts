@@ -57,6 +57,25 @@ describe('ResizeAndMovePageComponent', () => {
                     expect(movableElement !== null).toBeTruthy();
                 });
             });
+
+            describe('drag over event handler that', () => {
+
+                let eventMock: Event;
+
+                beforeEach(() => {
+                    eventMock = new Event('dragover');
+                });
+
+                it('prevents the default behavior of the event to allow drop', () => {
+                    jest.spyOn(eventMock, 'preventDefault');
+                    fixture.detectChanges();
+
+                    let divElement = element.query(By.css('.resize-and-move-page'));
+                    divElement.triggerEventHandler('dragover', eventMock);
+
+                    expect(eventMock.preventDefault).toHaveBeenCalled();
+                });
+            });
         });
     });
 });
