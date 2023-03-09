@@ -1,6 +1,5 @@
 .test-application {
     .title {
-        position: sticky;
         top: 0;
         left: 0;
         height: 60px;
@@ -19,7 +18,6 @@
 
     .main-navigation {
         background-color: var(--color-blue4);
-        position: sticky;
         height: 40px;
         top: 60px;
         left: 0;
@@ -29,7 +27,6 @@
             list-style: none;
             display: flex;
             flex-direction: row;
-            gap: 20px;
             align-items: center;
             height: 100%;
         }

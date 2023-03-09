@@ -1,5 +1,7 @@
 import { ElementRef, EmbeddedViewRef, TemplateRef, ViewContainerRef, ViewRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { Router } from '@angular/router';
+import { RouterTestingModule } from '@angular/router/testing';
 import { mock } from 'ts-mockito';
 
 import { WindowService } from './window.service';
@@ -23,9 +25,23 @@ describe('WindowService', () => {
         unobserve(target: Element) { };
     }
 
+    class ResizeObserverMock {
+        constructor(callback: ResizeObserverCallback) {
+            resizeObserverMock = this;
+            resizeObserverCallback = callback;
+        }
+
+        disconnect() { }
+        observe(target: Element) { }
+        unobserve(target: Element) { };
+    }
+
     let intersectionObserverMock: IntersectionObserverMock;
     let intersectionObserverCallback: IntersectionObserverCallback;
     let intersectionObserverOptions: IntersectionObserverInit | undefined;
+
+    let resizeObserverMock: ResizeObserverMock;
+    let resizeObserverCallback: ResizeObserverCallback;
 
     let containerMock: ViewContainerRef;
     let templateMock: TemplateRef<any>;
@@ -39,8 +55,11 @@ describe('WindowService', () => {
     let windowRef: ElementRef<HTMLElement>;
     let windowRefElement: HTMLElement;
 
+    let router: Router;
+
     beforeEach(() => {
         global.IntersectionObserver = IntersectionObserverMock;
+        global.ResizeObserver = ResizeObserverMock;
 
         templateMock = mock(TemplateRef);
         containerMock = mock(ViewContainerRef);
@@ -53,6 +72,9 @@ describe('WindowService', () => {
         containerMock.remove = jest.fn();
 
         TestBed.configureTestingModule({
+            imports: [
+                RouterTestingModule.withRoutes([{ path: 'test-route', redirectTo: '/' }])
+            ],
             providers: [
                 WindowService
             ]
@@ -63,11 +85,38 @@ describe('WindowService', () => {
         windowElement = document.createElement('div');
         windowRef = new ElementRef(windowElement);
         windowRefElement = document.createElement('span');
+
+        router = TestBed.inject(Router);
     });
 
     describe('on init', () => {
         it('creates an intersection observer', () => {
             expect(intersectionObserverMock).toBeDefined();
+            expect(intersectionObserverOptions).toEqual({ threshold: 1 });
+        });
+
+        it('creates a resize observer', () => {
+            expect(resizeObserverMock).toBeDefined();
+        });
+    });
+
+    describe('on routing', () => {
+        beforeEach(() => {
+            // Note: It is not good to spy on the unit under test, but since the close functionality is considerable, it's better than repeating all the tests
+            // TODO: Consider refactoring the functionalities of open/close/etc. into sub-services
+            jest.spyOn(windowService, 'close');
+        });
+
+        it('closes all windows', () => {
+            let id1 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), document.createElement('a'));
+            let id2 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), document.createElement('div'));
+            let id3 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), document.createElement('li'));
+
+            router.navigate(['test-route']);
+
+            expect(windowService.close).toHaveBeenNthCalledWith(1, id1);
+            expect(windowService.close).toHaveBeenNthCalledWith(2, id2);
+            expect(windowService.close).toHaveBeenNthCalledWith(3, id3);
         });
     });
 
@@ -75,6 +124,10 @@ describe('WindowService', () => {
         let childElement: HTMLElement;
         let parentElement: HTMLElement;
         let grandParentElement: HTMLElement;
+
+        let id1: number;
+        let id2: number;
+        let id3: number;
 
         beforeEach(() => {
             windowService.registerContainer(containerMock);
@@ -87,9 +140,9 @@ describe('WindowService', () => {
             grandParentElement.appendChild(parentElement);
             document.body.appendChild(grandParentElement);
 
-            windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), grandParentElement);
-            windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), parentElement);
-            windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), childElement);
+            id1 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), grandParentElement);
+            id2 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), parentElement);
+            id3 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), childElement);
         });
 
         it('fires an event with the id of the windows referencing the scrolled element', () => {
@@ -98,7 +151,7 @@ describe('WindowService', () => {
 
             childElement.dispatchEvent(new Event('scroll'));
 
-            expect(windowIds.sort()).toEqual([3]);
+            expect(windowIds.sort()).toEqual([id3]);
         });
 
         it('fires an event with the ids of all the windows which reference elements are contained within the scrolled element', () => {
@@ -107,7 +160,7 @@ describe('WindowService', () => {
 
             grandParentElement.dispatchEvent(new Event('scroll'));
 
-            expect(windowIds.sort()).toEqual([1, 2, 3]);
+            expect(windowIds.sort()).toEqual([id1, id2, id3]);
         });
     });
 
@@ -183,14 +236,91 @@ describe('WindowService', () => {
                 expect(windowService.close).not.toHaveBeenCalledWith(id2);
                 expect(windowService.close).not.toHaveBeenCalledWith(id3);
             });
+
+            it('should be kept open when clicked outside', () => {
+                let refElement = document.documentElement.appendChild(document.createElement('div'));
+                let id1 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')));
+                let id2 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), undefined, { onClickOutside: true });
+                let id3 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), undefined, { onClickOutside: false });
+
+                refElement.dispatchEvent(new Event('click'));
+
+                expect(windowService.close).toHaveBeenNthCalledWith(1, id1);
+                expect(windowService.close).toHaveBeenNthCalledWith(2, id3);
+                expect(windowService.close).not.toHaveBeenCalledWith(id2);
+            });
+        });
+    });
+
+    describe('on resize', () => {
+
+        let childElement: HTMLElement;
+        let parentElement: HTMLElement;
+        let grandParentElement: HTMLElement;
+
+        let id1: number;
+        let id2: number;
+        let id3: number;
+
+        beforeEach(() => {
+            windowService.registerContainer(containerMock);
+
+            childElement = createDivWithClass('child');
+            parentElement = createDivWithClass('parent');
+            grandParentElement = createDivWithClass('grandParent');
+
+            parentElement.appendChild(childElement);
+            grandParentElement.appendChild(parentElement);
+            document.body.appendChild(grandParentElement);
+
+            id1 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), grandParentElement);
+            id2 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), parentElement);
+            id3 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), childElement);
+        });
+
+        it('fires an event with the id of the windows referencing the resized element', () => {
+            const windowIds: number[] = [];
+            windowService.windowMoved$.subscribe(id => windowIds.push(id));
+
+            const entry = {
+                borderBoxSize: [],
+                contentBoxSize: [],
+                contentRect: mockDOMRect(),
+                devicePixelContentBoxSize: [],
+                target: childElement,
+            };
+
+            resizeObserverCallback([entry], resizeObserverMock);
+
+            expect(windowIds.sort()).toEqual([id3]);
+        });
+
+        it('fires an event with the ids of all the windows which reference elements are contained within the scrolled element', () => {
+            const windowIds: number[] = [];
+            windowService.windowMoved$.subscribe(id => windowIds.push(id));
+
+            const entry = {
+                borderBoxSize: [],
+                contentBoxSize: [],
+                contentRect: mockDOMRect(),
+                devicePixelContentBoxSize: [],
+                target: grandParentElement,
+            };
+
+            resizeObserverCallback([entry], resizeObserverMock);
+
+            expect(windowIds.sort()).toEqual([id1, id2, id3]);
         });
     });
 
     describe('on intersection', () => {
-        it('close any windows referencing the element', () => {
+        beforeEach(() => {
             // Note: It is not good to spy on the unit under test, but since the close functionality is considerable, it's better than repeating all the tests
             // TODO: Consider refactoring the functionalities of open/close/etc. into sub-services
             jest.spyOn(windowService, 'close');
+        });
+
+        it('close any windows referencing the element', () => {
             const refElement = document.createElement('button');
             const id1 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), refElement);
             const id2 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')));
@@ -210,6 +340,50 @@ describe('WindowService', () => {
             expect(windowService.close).toHaveBeenNthCalledWith(1, id1);
             expect(windowService.close).toHaveBeenNthCalledWith(2, id3);
         });
+
+        describe('does not close windows if', () => {
+            it('supposed to keep it open', () => {
+                const refElement = document.createElement('button');
+                let id1 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), refElement, { onIntersection: false });
+                let id2 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), refElement, { onIntersection: true });
+                let id3 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), refElement, { onIntersection: false });
+                const entry = {
+                    boundingClientRect: mockDOMRect(),
+                    intersectionRatio: 0,
+                    intersectionRect: mockDOMRect(),
+                    isIntersecting: false,
+                    rootBounds: null,
+                    target: refElement,
+                    time: 0
+                };
+
+                intersectionObserverCallback([entry], intersectionObserverMock);
+
+                expect(windowService.close).toHaveBeenNthCalledWith(1, id1);
+                expect(windowService.close).not.toHaveBeenCalledWith(id2);
+                expect(windowService.close).toHaveBeenNthCalledWith(2, id3);
+            });
+
+            it('does not close windows if intersecting is "true"', () => {
+                const refElement = document.createElement('button');
+                windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), refElement);
+                windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')));
+                windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), refElement);
+                const entry = {
+                    boundingClientRect: mockDOMRect(),
+                    intersectionRatio: 0,
+                    intersectionRect: mockDOMRect(),
+                    isIntersecting: true,
+                    rootBounds: null,
+                    target: refElement,
+                    time: 0
+                };
+
+                intersectionObserverCallback([entry], intersectionObserverMock);
+
+                expect(windowService.close).not.toHaveBeenCalled();
+            });
+        });
     });
 
     describe('registerWindow', () => {
@@ -221,6 +395,19 @@ describe('WindowService', () => {
             expect(id1).toEqual(1);
             expect(id2).toEqual(2);
             expect(id3).toEqual(3);
+        });
+
+        it('starts observing resizing for the reference elements', () => {
+            jest.spyOn(resizeObserverMock, 'observe');
+            let refElement1 = document.createElement('a');
+            let refElement2 = document.createElement('div');
+
+            windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), refElement1);
+            windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')));
+            windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), refElement2);
+
+            expect(resizeObserverMock.observe).toHaveBeenNthCalledWith(1, refElement1);
+            expect(resizeObserverMock.observe).toHaveBeenNthCalledWith(2, refElement2);
         });
 
         it('starts observing intersections for the reference elements', () => {
@@ -302,6 +489,26 @@ describe('WindowService', () => {
             expect(lastEvent).toEqual(1);
         });
 
+        describe('if no container was registered', () => {
+            it('does not create a new view if the window is already open', () => {
+                const id = windowService.registerWindow(windowRef, windowRefElement);
+
+                windowService.open(id, templateMock);
+
+                expect(containerMock.createEmbeddedView).not.toHaveBeenCalled();
+            });
+
+            it('does not emit an event with the id of the window', () => {
+                let lastEvent: number | undefined;
+                const id = windowService.registerWindow(windowRef, windowRefElement);
+                windowService.windowOpened$.subscribe(id => lastEvent = id);
+
+                windowService.open(id, templateMock);
+
+                expect(lastEvent).toBeUndefined();
+            });
+        });
+
         describe('if the window is already open', () => {
             it('does not create a new view if the window is already open', () => {
                 windowService.registerContainer(containerMock);
@@ -314,7 +521,7 @@ describe('WindowService', () => {
                 expect(containerMock.createEmbeddedView).not.toHaveBeenCalled();
             });
 
-            it('emits an event with the id of the window', () => {
+            it('does not emit an event with the id of the window', () => {
                 let lastEvent: number | undefined;
                 windowService.registerContainer(containerMock);
                 const id = windowService.registerWindow(windowRef, windowRefElement);

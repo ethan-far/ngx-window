@@ -1,25 +1,16 @@
-import { ChangeDetectorRef, Component, ElementRef, EventEmitter, HostListener, Input, OnDestroy, OnInit, Output, TemplateRef, ViewChild, ViewRef } from '@angular/core';
-import { filter, map, mergeWith, Subscription } from 'rxjs';
+import { AfterContentChecked, ChangeDetectorRef, Component, ElementRef, EventEmitter, HostListener, Input, NgZone, OnDestroy, OnInit, Output, TemplateRef, ViewChild, ViewRef } from '@angular/core';
+import { filter, map, mergeWith, Subscription, tap } from 'rxjs';
+import { AlignmentService } from './alignment.service';
 import { ElementPositionService } from './element-position.service';
 import { WindowService } from './window.service';
-
-export interface WindowAlignmentOptions {
-    alignToBottom?: boolean;
-    alignToRight?: boolean;
-    alignFromBottom?: boolean;
-    alignFromRight?: boolean;
-}
-
-export interface WindowOptions {
-    alignment?: WindowAlignmentOptions
-};
+import { WindowOptions } from './window.types';
 
 @Component({
     selector: 'ngx-window',
     templateUrl: './window.component.html',
     styleUrls: ['./window.component.scss']
 })
-export class WindowComponent implements OnInit, OnDestroy {
+export class WindowComponent implements OnInit, AfterContentChecked, OnDestroy {
 
     @ViewChild('template', { static: true })
     private template!: TemplateRef<any>;
@@ -36,52 +27,59 @@ export class WindowComponent implements OnInit, OnDestroy {
     private _openSubscription?: Subscription;
     private _moveSubscription?: Subscription;
 
+    private _openedAtLeastOnce: boolean = false;
+
     private _id?: number;
     get id() { return this._id; }
 
     get top() {
-        let top = this.topOffset;
+        let offset = this.alignmentService.align(
+            { top: (this.topOffset as number), left: (this.leftOffset as number), width: this.width, height: this.height },
+            this.options.alignment?.window,
+            this.refElement ? this.elementPositionService.getPosition(this.refElement) : undefined,
+            this.options.alignment?.reference)
 
-        if (this.refElement) {
-            const position = this.elementPositionService.getPosition(this.refElement);
-
-            top += position.top +
-                (this.options.alignment?.alignToBottom ? position.height : 0) -
-                (this.options.alignment?.alignFromBottom ? this.height : 0);
-        }
-
-        return Math.round((top + Number.EPSILON) * 100) / 100;
+        return Math.round((offset.top + Number.EPSILON) * 100) / 100;
     }
 
     get left() {
-        let left = this.leftOffset;
+        let offset = this.alignmentService.align(
+            { top: (this.topOffset as number), left: (this.leftOffset as number), width: this.width, height: this.height },
+            this.options.alignment?.window,
+            this.refElement ? this.elementPositionService.getPosition(this.refElement) : undefined,
+            this.options.alignment?.reference)
 
-        if (this.refElement) {
-            const position = this.elementPositionService.getPosition(this.refElement);
-
-            left += position.left +
-                (this.options.alignment?.alignToRight ? position.width : 0) -
-                (this.options.alignment?.alignFromRight ? this.width : 0);
-        }
-
-        return Math.round((left + Number.EPSILON) * 100) / 100;
+        return Math.round((offset.left + Number.EPSILON) * 100) / 100;
     }
 
-    constructor(private windowService: WindowService, private elementPositionService: ElementPositionService, private elementRef: ElementRef, private changeDetectorRef: ChangeDetectorRef) { }
+    constructor(private windowService: WindowService, private elementPositionService: ElementPositionService,
+        private alignmentService: AlignmentService, private elementRef: ElementRef,
+        private changeDetectorRef: ChangeDetectorRef, private ngZone: NgZone) { }
 
     ngOnInit() {
-        this._id = this.windowService.registerWindow(this.elementRef, this.refElement);
+        this._id = this.windowService.registerWindow(this.elementRef, this.refElement, this.options.visibility?.keepOpen);
 
         const opened$ = this.windowService.windowOpened$.pipe(filter(id => id === this._id), map(() => true));
         const closed$ = this.windowService.windowClosed$.pipe(filter(id => id === this._id), map(() => false));
         const moved$ = this.windowService.windowMoved$.pipe(filter(id => id === this._id), map(() => true));
 
-        this._openSubscription = opened$.pipe(mergeWith(closed$)).subscribe(visible => this.visibleChange.emit(visible));
+        this._openSubscription = opened$.pipe(
+            tap(() => { this._openedAtLeastOnce = true; }),
+            mergeWith(closed$)
+        ).subscribe(visible => this.visibleChange.emit(visible));
         this._moveSubscription = moved$.subscribe(() => {
             if (this.windowService.isOpen(this._id!)) {
-                this.changeDetectorRef.detectChanges();
+                this.ngZone.run(() => {
+                    this.changeDetectorRef.detectChanges();
+                });
             }
         });
+    }
+
+    ngAfterContentChecked() {
+        if (this.options.visibility?.startOpen && !this._openedAtLeastOnce) {
+            this.open();
+        }
     }
 
     ngOnDestroy() {

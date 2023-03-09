@@ -1,4 +1,5 @@
 import { ApplicationRef, APP_BOOTSTRAP_LISTENER, Component, ComponentFactoryResolver, Injector, NgModule } from '@angular/core';
+import { AlignmentService } from './alignment.service';
 import { installWindowContainer } from './bootstrap-listener';
 import { ElementPositionService } from './element-position.service';
 import { WindowCloserDirective } from './window-closer.directive';
@@ -12,6 +13,7 @@ import { WindowService } from './window.service';
     providers: [
         WindowService,
         ElementPositionService,
+        AlignmentService,
         {
             provide: APP_BOOTSTRAP_LISTENER,
             multi: true,

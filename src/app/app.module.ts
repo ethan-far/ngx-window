@@ -5,7 +5,6 @@ import { NgxWindowModule } from '../../projects/ngx-window/src/public-api';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { LinkComponent } from './link.component';
-import { AlignmentPageModule } from './modules/alignment/alignment-page.module';
 import { DropDownPageModule } from './modules/drop-down/drop-down-page.module';
 import { ResizeAndMovePageModule } from './modules/resize-and-move/resize-and-move-page.module';
 
@@ -19,8 +18,7 @@ import { ResizeAndMovePageModule } from './modules/resize-and-move/resize-and-mo
     AppRoutingModule,
     NgxWindowModule,
     DropDownPageModule,
-    ResizeAndMovePageModule,
-    AlignmentPageModule
+    ResizeAndMovePageModule
   ],
   providers: [],
   bootstrap: [AppComponent]

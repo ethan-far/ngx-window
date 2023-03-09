@@ -1,0 +1,32 @@
+.movable {
+    width: 200px;
+    height: 100px;
+    position: absolute;
+    background-color: var(--color-blue4);
+    left: calc(50% - 100px);
+    top: calc(50% + 50px);
+    font-size: 24px;
+    color: var(--color-white);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 3px solid var(--color-white);
+    cursor: move;
+    box-shadow: var(--slight-shadow);
+
+    &:active {
+        background-color: var(--color-blue5);
+    }
+}
+
+.window-content {
+    width: 100px;
+    height: 30px;
+    display: flex;
+    background-color: var(--color-blue3);
+    justify-content: center;
+    align-items: center;
+    border: 2px solid var(--color-white);
+    color: var(--color-blue6);
+    box-shadow: var(--slight-shadow);
+}

@@ -1,11 +1,5 @@
 import { Injectable } from '@angular/core';
-
-export interface Position {
-    top: number,
-    left: number,
-    width: number,
-    height: number
-}
+import { Position } from './window.types';
 
 @Injectable()
 export class ElementPositionService {

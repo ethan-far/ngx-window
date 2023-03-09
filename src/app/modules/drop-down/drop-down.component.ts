@@ -12,7 +12,7 @@ export class DropDownComponent {
     @ViewChild('dropDownWindow') dropDownWindow!: WindowComponent;
 
     windowVisible: boolean = false;
-    windowOptions: WindowOptions = { alignment: { alignToBottom: true } };
+    windowOptions: WindowOptions = { alignment: { reference: { vertical: 'bottom' } } };
 
     onClick() {
         this.dropDownWindow.toggle();

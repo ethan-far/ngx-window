@@ -133,34 +133,6 @@ describe('AppComponent', () => {
                             expect(linkComponent.url).toEqual('/resize-and-move');
                         });
                     });
-
-                    describe('<ngx-test-link> component with', () => {
-                        it('class "alignment"', () => {
-                            fixture.detectChanges();
-
-                            let linkElement = element.query(By.css('.link-list ngx-test-link.alignment'));
-
-                            expect(linkElement !== null).toBeTruthy();
-                        });
-
-                        it('the expected title', () => {
-                            fixture.detectChanges();
-
-                            let linkElement = element.query(By.css('.alignment'));
-                            let linkComponent = linkElement.componentInstance as LinkComponent;
-
-                            expect(linkComponent.title).toEqual('Alignment');
-                        });
-
-                        it('the expected url', () => {
-                            fixture.detectChanges();
-
-                            let linkElement = element.query(By.css('.alignment'));
-                            let linkComponent = linkElement.componentInstance as LinkComponent;
-
-                            expect(linkComponent.url).toEqual('/alignment');
-                        });
-                    });
                 });
             });
 

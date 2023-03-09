@@ -1,0 +1,13 @@
+<div class="resizable" #resizable>Resize me</div>
+<ngx-window class="top window" [refElement]="resizable" [width]="100" [height]="30" [topOffset]="-10" [leftOffset]="0" [options]="topWindowOptions">
+    <span class="window-content">Top</span>
+</ngx-window>
+<ngx-window class="left window" [refElement]="resizable" [width]="100" [height]="30" [topOffset]="0" [leftOffset]="-10" [options]="leftWindowOptions">
+    <span class="window-content">Left</span>
+</ngx-window>
+<ngx-window class="right window" [refElement]="resizable" [width]="100" [height]="30" [topOffset]="0" [leftOffset]="10" [options]="rightWindowOptions">
+    <span class="window-content">Right</span>
+</ngx-window>
+<ngx-window class="bottom window" [refElement]="resizable" [width]="100" [height]="30" [topOffset]="10" [leftOffset]="0" [options]="bottomWindowOptions">
+    <span class="window-content">Bottom</span>
+</ngx-window>

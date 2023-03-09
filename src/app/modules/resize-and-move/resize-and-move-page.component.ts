@@ -5,4 +5,8 @@ import { Component } from '@angular/core';
     templateUrl: './resize-and-move-page.component.html',
     styleUrls: ['./resize-and-move-page.component.scss']
 })
-export class ResizeAndMovePageComponent { }
+export class ResizeAndMovePageComponent {
+    onDragOver(event: DragEvent) {
+        event.preventDefault();
+    }
+}
