@@ -40,6 +40,7 @@
         "@types/node": "^12.11.1",
         "jest": "^27.5.1",
         "jest-extended": "^2.0.0",
+        "jest-jasmine2": "^27.5.1",
         "jest-preset-angular": "^11.1.1",
         "ng-mocks": "^13.2.0",
         "ts-jest": "^27.1.3",
