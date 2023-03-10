@@ -89,7 +89,7 @@ describe('WindowComponent', () => {
 
                     component.window.ngAfterContentChecked();
 
-                    expect(windowServiceMock.open).toHaveBeenCalledWith(1234, jasmine.any(TemplateRef));
+                    expect(windowServiceMock.open).toHaveBeenCalledWith(1234, expect.any(TemplateRef));
                 });
 
                 it('tries again if was not yet opened', () => {

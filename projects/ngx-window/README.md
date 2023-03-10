@@ -17,7 +17,7 @@ After building your library with `ng build ngx-window`, go to the dist folder `c
 
 ## Running unit tests
 
-Run `ng test ngx-window` to execute the unit tests via [Karma](https://karma-runner.github.io).
+Run `ng test ngx-window` to execute the unit tests via [Jest](https://jestjs.io/).
 
 ## Further help
 

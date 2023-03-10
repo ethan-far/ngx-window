@@ -58,8 +58,8 @@ describe('WindowService', () => {
     let router: Router;
 
     beforeEach(() => {
-        global.IntersectionObserver = IntersectionObserverMock;
-        global.ResizeObserver = ResizeObserverMock;
+        window.IntersectionObserver = IntersectionObserverMock;
+        window.ResizeObserver = ResizeObserverMock;
 
         templateMock = mock(TemplateRef);
         containerMock = mock(ViewContainerRef);
