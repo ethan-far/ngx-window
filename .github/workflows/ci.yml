@@ -39,11 +39,5 @@ jobs:
     - name: Build library
       run: npm run build:lib
     
-    - name: Test
+    - name: Test & Coverage check
       run: npm run test:coverage
-    
-    - name: Check coverage
-      uses: ArtiomTr/jest-coverage-report-action@v2
-      with:
-        coverage-file: './coverage/coverage-final.json'
-        base-coverage-file: './coverage/coverage-final.json'
