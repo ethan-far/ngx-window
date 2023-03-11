@@ -6,7 +6,7 @@ A generic, light weight, window layer component for Angular 2+ to allow front la
 
 - Windows are not affected by attributes of the reference element's hierarchy, e.g. overflow, display, position, etc.
 - Controlled from the component using it, and can be opened, closed or toggled programmatically
-- Enables closing from within using the ```WindowCloser``` directive
+- Enables closing from within using the `WindowCloser` directive
 - Supports alignment to the viewport, or the reference element (when exists) according to several anchor points (future plans include automatic alignment based on available viewport space), including an offset from the anchor point
 - Configurable automatic closing when:
     - Clicked elsewhere
