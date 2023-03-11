@@ -1,7 +1,7 @@
 {
   "name": "ngx-window-component",
   "description": "Lightweight window layer component for Angular",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "license": "MIT",
   "homepage": "https://github.com/ethan-far/ngx-window",
   "bugs": {

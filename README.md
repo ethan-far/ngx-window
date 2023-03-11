@@ -1,5 +1,7 @@
 # ngx-window [![MIT license](http://img.shields.io/badge/license-MIT-brightgreen.svg)](http://opensource.org/licenses/MIT)
 
+**Note: This is essentially a beta version of sorts. It's just been released and will soon start to be tested in a real life application. Until this note is removed, expect bugs, performance issues and incomplete documentation. You're more than welcome to help by [Contributing][contrib].**
+
 A generic, light weight, window layer component for Angular 2+ to allow front layer windows such as: dropdowns, popups, modals, tooltips, etc.
 
 # Features
@@ -24,12 +26,18 @@ Latest version available for each version of Angular
 
 | ngx-window-component | Angular |
 | -------------------- | ------- |
-| 0.0.4                | 13.x    |
+| 0.0.5                | 13.x    |
 
 # Install
 
 ```bash
 npm install ngx-window-component --save
+```
+
+# Run demo application
+
+```bash
+npm run start
 ```
 
 # Use
@@ -90,6 +98,9 @@ export type VerticalAnchor = 'top' | 'center' | 'bottom';
 | Close    | *none*     | Closes (hides) the window                        |
 | Toggle   | *none*     | Opens the window if closed, or closes it if open |
 
+# Events
 
+
+[contrib]: https://github.com/ethan-far/ngx-window/CONTRIBUTING.md
 
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)

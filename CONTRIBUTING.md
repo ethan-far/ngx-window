@@ -65,11 +65,14 @@ Before you submit your Pull Request (PR) consider the following guidelines:
 ## <a name="rules"></a> Coding Rules
 To ensure consistency throughout the source code, keep these rules in mind as you are working:
 
-* All features or bug fixes **must be tested** by one or more specs (unit-tests).
+* All code must follow the [Coding Guidelines][coding]
+* All features or bug fixes **must be tested** by one or more specs (unit-tests) that follow the [Testing Guidelines][testing]
 * All public API methods **must be documented**.
 * Document your changes in the README (try to follow the convention you see in the rest of the file)
 * Create an example in the demo application that demonstrates your changes so people can see how your changes work
 
 
 [coc]: https://github.com/ethan-far/ngx-window/CODE_OF_CONDUCT.md
+[coding]: https://github.com/ethan-far/ngx-window/CODING_GUIDELINES.md
+[testing]: https://github.com/ethan-far/ngx-window/TESTING_GUIDELINES.md
 [github]: https://github.com/ethan-far/ngx-window
