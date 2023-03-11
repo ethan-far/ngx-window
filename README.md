@@ -36,7 +36,10 @@ npm install ngx-window-component --save
 
 # Run demo application
 
+Clone this repository and then:
+
 ```bash
+npm install
 npm run start
 ```
 
