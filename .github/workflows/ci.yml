@@ -43,7 +43,7 @@ jobs:
       run: npm run test:coverage
     
     - name: Check coverage
-      uses: VeryGoodOpenSource/very_good_coverage@v2
+      uses: ArtiomTr/jest-coverage-report-action@v2
       with:
-        path: './coverage/lcov.info'
-        min_coverage: 100
+        coverage-file: './coverage/coverage-final.json'
+        base-coverage-file: './coverage/coverage-final.json'
