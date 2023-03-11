@@ -39,11 +39,5 @@ jobs:
     - name: Build library
       run: npm run build:lib
     
-    - name: Test
+    - name: Test & Coverage check
       run: npm run test:coverage
-    
-    - name: Check coverage
-      uses: VeryGoodOpenSource/very_good_coverage@v2
-      with:
-        path: './coverage/lcov.info'
-        min_coverage: 100
