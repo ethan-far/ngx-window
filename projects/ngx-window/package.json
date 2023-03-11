@@ -1,6 +1,12 @@
 {
-  "name": "ngx-window",
-  "version": "0.0.1",
+  "name": "ngx-window-component",
+  "version": "0.0.3",
+  "license": "MIT",
+  "homepage": "https://github.com/ethan-far/ngx-window",
+  "bugs": {
+    "url": "https://github.com/ethan-far/ngx-window/issues",
+    "email": "ef.open.source@gmail.com"
+  },
   "peerDependencies": {
     "@angular/common": "^12.1.0",
     "@angular/core": "^12.1.0"
