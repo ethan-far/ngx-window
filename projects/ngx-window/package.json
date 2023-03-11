@@ -1,6 +1,7 @@
 {
   "name": "ngx-window-component",
-  "version": "0.0.4",
+  "description": "Lightweight window layer component for Angular",
+  "version": "0.0.5",
   "license": "MIT",
   "homepage": "https://github.com/ethan-far/ngx-window",
   "bugs": {
@@ -13,5 +14,19 @@
   },
   "dependencies": {
     "tslib": "^2.2.0"
-  }
+  },
+  "keywords": [
+    "ng2",
+    "ngx",
+    "ngx-window",
+    "angular",
+    "angular2",
+    "typescript",
+    "window",
+    "dialog",
+    "modal",
+    "dropdown",
+    "popup",
+    "tooltip"
+  ]
 }
