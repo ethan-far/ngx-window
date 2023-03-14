@@ -55,7 +55,7 @@ export class WindowService implements OnDestroy {
                 .values(this._windows)
                 .filter(window =>
                     !window.keepOpen?.onClickOutside &&
-                    window.refElement !== event.target &&
+                    !this.referenceElementContainsEventTarget(window, event) &&
                     !this.windowContainsEventTarget(window, event)
                 )
                 .forEach(window => this.close(window.id));
@@ -164,6 +164,10 @@ export class WindowService implements OnDestroy {
         }
 
         return windowId;
+    }
+
+    private referenceElementContainsEventTarget(window: Window, event: MouseEvent): boolean {
+        return (event.target instanceof Node) && !!window.refElement?.contains(event.target);
     }
 
     private windowContainsEventTarget(window: Window, event: MouseEvent): boolean {

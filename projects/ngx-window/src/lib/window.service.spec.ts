@@ -201,6 +201,20 @@ describe('WindowService', () => {
                 expect(windowService.close).not.toHaveBeenCalledWith(id2);
             });
 
+            it('references the container of the clicked element', () => {
+                let refElement = document.documentElement.appendChild(document.createElement('div'));
+                let childElement = refElement.appendChild(document.createElement('span'));
+                let id1 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), refElement);
+                let id2 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), document.createElement('a'));
+                let id3 = windowService.registerWindow(new ElementRef<HTMLElement>(document.createElement('div')), document.createElement('li'));
+
+                childElement.dispatchEvent(new Event('click'));
+
+                expect(windowService.close).not.toHaveBeenCalledWith(id1);
+                expect(windowService.close).toHaveBeenNthCalledWith(1, id2);
+                expect(windowService.close).toHaveBeenNthCalledWith(2, id3);
+            });
+
             it('contains the clicked element', () => {
                 let outerElement = document.documentElement.appendChild(document.createElement('div'));
                 let innerElement = outerElement.appendChild(document.createElement('a'));
