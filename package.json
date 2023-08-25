@@ -3,7 +3,7 @@
     "version": "0.0.6",
     "scripts": {
         "ng": "ng",
-        "start": "ng serve -o --host 127.0.0.1 --port 4200",
+        "start": "ng serve -o --host 127.0.0.1 --port 4100",
         "build": "ng build",
         "build:lib": "ng build ngx-window",
         "watch": "ng build --watch --configuration development",
