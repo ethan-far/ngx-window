@@ -24,3 +24,26 @@ body {
         font-family: 'Rancho', cursive;
     }
 }
+
+*::-webkit-scrollbar {
+    width: 20px;
+    height: 20px;
+}
+
+*::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+    background: #5784937f;
+    border-radius: 20px;
+    border: 6px solid rgba(0, 0, 0, 0);
+    background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+    background: #578493;
+    border-radius: 20px;
+    border: 6px solid rgba(0, 0, 0, 0);
+    background-clip: padding-box;
+}

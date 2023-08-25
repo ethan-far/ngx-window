@@ -8,8 +8,7 @@ import { WindowComponent } from './window.component';
 import { WindowService } from './window.service';
 
 @NgModule({
-    imports: [
-    ],
+    imports: [],
     providers: [
         WindowService,
         ElementPositionService,
@@ -29,9 +28,6 @@ import { WindowService } from './window.service';
     exports: [
         WindowComponent,
         WindowCloserDirective
-    ],
-    entryComponents: [
-        WindowContainerComponent
     ]
 })
 export class NgxWindowModule { }
