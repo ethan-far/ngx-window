@@ -26,6 +26,7 @@ Latest version available for each version of Angular
 
 | ngx-window-component | Angular |
 | -------------------- | ------- |
+| 0.0.7                | 16.x    |
 | 0.0.5                | 13.x    |
 
 # Install
