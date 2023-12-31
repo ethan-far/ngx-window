@@ -332,36 +332,6 @@ describe('WindowComponent', () => {
                 expect(divElement.styles['width']).toEqual('123px');
                 expect(divElement.styles['height']).toEqual('456px');
             });
-
-            describe('click handler that', () => {
-
-                let eventMock: any;
-
-                beforeEach(() => {
-                    eventMock = {
-                        stopPropagation: jest.fn(),
-                        preventDefault: jest.fn()
-                    }
-                });
-
-                it('stops the propagation of the event', () => {
-                    fixture.detectChanges();
-
-                    let divElement = element.query(By.css('.window'));
-                    divElement.triggerEventHandler('click', eventMock);
-
-                    expect(eventMock.stopPropagation).toHaveBeenCalled();
-                });
-
-                it('prevents the default of the event', () => {
-                    fixture.detectChanges();
-
-                    let divElement = element.query(By.css('.window'));
-                    divElement.triggerEventHandler('click', eventMock);
-
-                    expect(eventMock.preventDefault).toHaveBeenCalled();
-                });
-            });
         });
     });
 

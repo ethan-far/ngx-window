@@ -94,11 +94,6 @@ export class WindowComponent implements OnInit, AfterContentChecked, OnDestroy {
         }
     }
 
-    onClick(event: MouseEvent) {
-        event.stopPropagation();
-        event.preventDefault();
-    }
-
     open() {
         this.windowService.open(this._id!, this.template);
     }
