@@ -1,3 +1,8 @@
+## [0.0.9](https://github.com/ethan-far/ngx-window/compare/v0.0.9...v0.0.10) (2024-04-13)
+
+* Angular 17 support
+* Fixed dependencies versions that had vulnerabilities
+
 ## [0.0.9](https://github.com/ethan-far/ngx-window/compare/v0.0.7...v0.0.9) (2023-12-31)
 
 * Fixed bug #26 - `<input>` elements' popups are not displayed when inside an `<ngx-window>`

@@ -1,7 +1,7 @@
 {
   "name": "ngx-window-component",
   "description": "Lightweight window layer component for Angular",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "license": "MIT",
   "homepage": "https://github.com/ethan-far/ngx-window",
   "bugs": {
@@ -9,8 +9,8 @@
     "email": "ef.open.source@gmail.com"
   },
   "peerDependencies": {
-    "@angular/common": "^16.2.2",
-    "@angular/core": "^16.2.2"
+    "@angular/common": "^17.3.4",
+    "@angular/core": "^17.3.4"
   },
   "dependencies": {
     "tslib": "^2.6.2"

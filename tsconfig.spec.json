@@ -8,9 +8,7 @@
       "jest"
     ]
   },
-  "files": [
-    "src/polyfills.ts"
-  ],
+  "files": [],
   "include": [
     "**/*.spec.ts",
     "**/*.d.ts"
