@@ -1,3 +1,8 @@
+## [0.1.0](https://github.com/ethan-far/ngx-window/compare/v0.0.10...v0.1.0) (2024-09-15)
+
+* Angular 18 support
+* Fixed dependencies versions that had vulnerabilities
+
 ## [0.0.9](https://github.com/ethan-far/ngx-window/compare/v0.0.9...v0.0.10) (2024-04-13)
 
 * Angular 17 support
