@@ -5,8 +5,6 @@
 A generic, light weight, window layer component for Angular 2+ to allow front layer windows such as: dropdowns, popups, modals, tooltips, etc.
   
 ![ngx-window-1](https://github.com/user-attachments/assets/3c64d4e7-853d-4ade-9359-72de2c2ae365)
-![ngx-window-scrshot-1](https://github.com/user-attachments/assets/71e9f5b2-91e1-4509-b20f-5605f9d81065)
-![ngx-window-2](https://github.com/user-attachments/assets/7f770214-d69f-4171-b2c1-eea8f7547625)
 ![ngx-window-scrshot-2](https://github.com/user-attachments/assets/a344f3e3-9a60-4273-90b5-4a8614b173a0)
 
 # Features
@@ -31,6 +29,7 @@ Latest version available for each version of Angular
 
 | ngx-window-component | Angular |
 | -------------------- | ------- |
+| 0.1.0                | 18.x    |
 | 0.0.10               | 17.x    |
 | 0.0.7                | 16.x    |
 | 0.0.5                | 13.x    |
