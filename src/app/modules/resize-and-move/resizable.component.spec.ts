@@ -2,7 +2,7 @@ import { DebugElement } from '@angular/core';
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { MockComponent } from 'ng-mocks';
-import { NgxWindowModule, WindowComponent } from '../../../../projects/ngx-window/src/public-api';
+import { WindowComponent } from '../../../../projects/ngx-window/src/public-api';
 import { ResizableComponent } from './resizable.component';
 
 describe('ResizableComponent', () => {
