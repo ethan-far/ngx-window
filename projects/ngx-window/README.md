@@ -29,6 +29,7 @@ Latest version available for each version of Angular
 
 | ngx-window-component | Angular |
 | -------------------- | ------- |
+| 0.3.0                | 20.x    |
 | 0.2.1                | 19.x    |
 | 0.1.0                | 18.x    |
 | 0.0.10               | 17.x    |
