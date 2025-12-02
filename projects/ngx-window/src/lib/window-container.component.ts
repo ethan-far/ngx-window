@@ -4,7 +4,8 @@ import { WindowService } from './window.service';
 @Component({
     selector: 'ngx-window-container',
     templateUrl: './window-container.component.html',
-    styleUrls: ['./window-container.component.scss']
+    styleUrls: ['./window-container.component.scss'],
+    standalone: false
 })
 export class WindowContainerComponent implements AfterViewInit {
     @ViewChild('container', { read: ViewContainerRef })

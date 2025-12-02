@@ -4,7 +4,8 @@ import { WindowComponent, WindowOptions } from '../../../../projects/ngx-window/
 @Component({
     selector: 'ngx-test-drop-down',
     templateUrl: './drop-down.component.html',
-    styleUrls: ['./drop-down.component.scss']
+    styleUrls: ['./drop-down.component.scss'],
+    standalone: false
 })
 export class DropDownComponent {
     @Input() title: string = '';

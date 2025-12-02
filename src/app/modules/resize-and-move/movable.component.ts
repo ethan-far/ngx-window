@@ -4,7 +4,8 @@ import { WindowOptions } from '../../../../projects/ngx-window/src/public-api';
 @Component({
     selector: 'ngx-test-movable',
     templateUrl: './movable.component.html',
-    styleUrls: ['./movable.component.scss']
+    styleUrls: ['./movable.component.scss'],
+    standalone: false
 })
 export class MovableComponent {
 
