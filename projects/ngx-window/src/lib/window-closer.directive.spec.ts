@@ -47,7 +47,8 @@ describe('WindowCloserDirective', () => {
 });
 
 @Component({
-    template: '<div ngxWindowCloser></div>'
+    template: '<div ngxWindowCloser></div>',
+    standalone: false
 })
 export class TestComponent {
     @ViewChild(WindowCloserDirective) windowCloser!: WindowCloserDirective;

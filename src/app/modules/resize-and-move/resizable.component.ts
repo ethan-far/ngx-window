@@ -4,7 +4,8 @@ import { WindowOptions } from '../../../../projects/ngx-window/src/public-api';
 @Component({
     selector: 'ngx-test-resizable',
     templateUrl: './resizable.component.html',
-    styleUrls: ['./resizable.component.scss']
+    styleUrls: ['./resizable.component.scss'],
+    standalone: false
 })
 export class ResizableComponent {
     topWindowOptions: WindowOptions = {

@@ -172,7 +172,8 @@ describe('DropDownComponent', () => {
         <ngx-test-drop-down #dropDown>
             <span>Test content</span>
         </ngx-test-drop-down>
-    `
+    `,
+    standalone: false
 })
 class TestHostComponent {
     @ViewChild('dropDown', { static: true }) dropDown!: DropDownComponent;

@@ -364,7 +364,8 @@ describe('WindowComponent', () => {
         </ngx-window>
         <div #container class="TESKTJSLEKJWLEKTJWELKT"> 
         </div>
-    `
+    `,
+    standalone: false
 })
 class TestHostComponent implements OnInit {
     @ViewChild('container', { static: true, read: ViewContainerRef }) container!: ViewContainerRef;

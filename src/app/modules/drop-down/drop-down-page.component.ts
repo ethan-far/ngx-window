@@ -4,7 +4,8 @@ import { WindowCloserDirective } from '../../../../projects/ngx-window/src/lib/w
 @Component({
     selector: 'ngx-test-drop-down-page',
     templateUrl: './drop-down-page.component.html',
-    styleUrls: ['./drop-down-page.component.scss']
+    styleUrls: ['./drop-down-page.component.scss'],
+    standalone: false
 })
 export class DropDownPageComponent {
     @ViewChild(WindowCloserDirective) windowCloser!: WindowCloserDirective;
