@@ -1,15 +1,17 @@
 import { Injectable } from '@angular/core';
 import { AlignmentService } from './alignment.service';
-import { AdaptivePlacement, AlignmentOptions, Offset, Position } from './window.types';
+import { AdaptivePlacement, AlignmentOptions, Offset, Position, ResolvedWindowPlacement, ResolvedWindowPlacementSource } from './window.types';
 
 interface PlacementCandidate {
+    placementIndex: number;
+    source: ResolvedWindowPlacementSource;
     alignment?: AlignmentOptions;
     topOffset: number;
     leftOffset: number;
 }
 
 interface ResolvedCandidate {
-    offset: Offset;
+    placement: ResolvedWindowPlacement;
     overflow: number;
 }
 
@@ -29,6 +31,10 @@ export class WindowPlacementService {
     constructor(private alignmentService: AlignmentService) { }
 
     resolve(request: WindowPlacementRequest): Offset {
+        return this.resolvePlacement(request).offset;
+    }
+
+    resolvePlacement(request: WindowPlacementRequest): ResolvedWindowPlacement {
         const candidates = this.buildCandidates(request);
         let bestCandidate: ResolvedCandidate | undefined;
 
@@ -36,7 +42,7 @@ export class WindowPlacementService {
             const resolved = this.resolveCandidate(request, candidate);
 
             if (resolved.overflow === 0) {
-                return resolved.offset;
+                return resolved.placement;
             }
 
             if (!bestCandidate || resolved.overflow < bestCandidate.overflow) {
@@ -44,21 +50,32 @@ export class WindowPlacementService {
             }
         }
 
-        return bestCandidate?.offset ?? { top: request.topOffset, left: request.leftOffset };
+        return bestCandidate?.placement ?? {
+            offset: { top: request.topOffset, left: request.leftOffset },
+            placementIndex: 0,
+            source: 'primary',
+            alignment: request.alignment,
+            topOffset: request.topOffset,
+            leftOffset: request.leftOffset
+        };
     }
 
     private buildCandidates(request: WindowPlacementRequest): PlacementCandidate[] {
         const primaryAlignment = request.alignment;
         const primaryCandidate: PlacementCandidate = {
+            placementIndex: 0,
+            source: 'primary',
             alignment: primaryAlignment,
             topOffset: request.topOffset,
             leftOffset: request.leftOffset
         };
 
-        const fallbackCandidates = (request.adaptivePlacements ?? []).map((placement) => {
+        const fallbackCandidates = (request.adaptivePlacements ?? []).map((placement, index) => {
             const alignment = this.mergeAlignment(primaryAlignment, placement.alignment);
 
             return {
+                placementIndex: index + 1,
+                source: 'adaptive' as const,
                 alignment,
                 topOffset: placement.topOffset ?? this.resolveVerticalOffset(request.topOffset, primaryAlignment, alignment),
                 leftOffset: placement.leftOffset ?? this.resolveHorizontalOffset(request.leftOffset, primaryAlignment, alignment)
@@ -82,7 +99,14 @@ export class WindowPlacementService {
         );
 
         return {
-            offset,
+            placement: {
+                offset,
+                placementIndex: candidate.placementIndex,
+                source: candidate.source,
+                alignment: candidate.alignment,
+                topOffset: candidate.topOffset,
+                leftOffset: candidate.leftOffset
+            },
             overflow: this.calculateOverflow(offset, request.width, request.height, request.viewportPadding ?? 0)
         };
     }

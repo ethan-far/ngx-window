@@ -22,7 +22,7 @@ A generic, light weight, window layer component for Angular 2+ to allow front la
     - Reference element resize
     - Reference element scroll (or container)
     - Window resize
-- Fires events when the window becomes visible/invisible
+- Fires events when the window becomes visible/invisible and when adaptive placement changes
 
 # Dependencies
 
@@ -30,7 +30,7 @@ Latest version available for each version of Angular
 
 | ngx-window-component | Angular |
 | -------------------- | ------- |
-| 0.5.0                | 21.x    |
+| 0.5.1                | 21.x    |
 | 0.3.0                | 20.x    |
 | 0.2.1                | 19.x    |
 | 0.1.0                | 18.x    |
@@ -70,7 +70,8 @@ Drop down component template:
 ```html
 <button (click)="dropDownWindow.toggle()" #dropDownButton>Toggle dropdown</button>
 <ngx-window [refElement]="dropDownButton" [options]="{ alignment: { reference: { vertical: 'bottom' } } }"
-    [width]="200" [height]="250" (visibleChange)="onVisibleChange($event)" #dropDownWindow>
+    [width]="200" [height]="250" (visibleChange)="onVisibleChange($event)"
+    (placementChange)="onPlacementChange($event)" #dropDownWindow>
     <div class="drop-down-content">
         <ng-content></ng-content>
     </div>
@@ -116,6 +117,22 @@ export type VerticalAnchor = 'top' | 'center' | 'bottom';
 | Toggle   | *none*     | Opens the window if closed, or closes it if open |
 
 # Events
+
+| Event             | Payload                    | Description                                                                    |
+| ----------------- | -------------------------- | ------------------------------------------------------------------------------ |
+| visibleChange     | `boolean`                  | Fires when the window opens or closes                                          |
+| placementChange   | `ResolvedWindowPlacement`  | Fires when the resolved adaptive placement changes after placement evaluation   |
+
+```typescript
+export interface ResolvedWindowPlacement {
+    offset: Offset;
+    placementIndex: number;
+    source: 'primary' | 'adaptive';
+    alignment?: AlignmentOptions;
+    topOffset: number;
+    leftOffset: number;
+}
+```
 
 
 [contrib]: https://github.com/ethan-far/ngx-window/CONTRIBUTING.md

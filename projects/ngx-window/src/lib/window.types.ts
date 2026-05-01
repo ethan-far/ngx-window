@@ -18,6 +18,8 @@ export interface Offset {
     left: number
 }
 
+export type ResolvedWindowPlacementSource = 'primary' | 'adaptive';
+
 export interface KeepOpenOptions {
     onClickOutside?: boolean;
     onIntersection?: boolean;
@@ -42,6 +44,15 @@ export interface AdaptivePlacement {
 export interface AdaptivePositionOptions {
     placements: AdaptivePlacement[];
     viewportPadding?: number;
+}
+
+export interface ResolvedWindowPlacement {
+    offset: Offset;
+    placementIndex: number;
+    source: ResolvedWindowPlacementSource;
+    alignment?: AlignmentOptions;
+    topOffset: number;
+    leftOffset: number;
 }
 
 export interface WindowOptions {

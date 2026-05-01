@@ -1,5 +1,5 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
-import { WindowOptions } from '../../../../projects/ngx-window/src/public-api';
+import { ResolvedWindowPlacement, WindowOptions } from '../../../../projects/ngx-window/src/public-api';
 
 @Component({
     selector: 'ngx-test-adaptive-positioning-page',
@@ -12,6 +12,8 @@ export class AdaptivePositioningPageComponent {
 
     private _coordinates?: [number, number];
     private _offset?: [number, number];
+    readonly placementLabels = ['Below trigger', 'Above trigger', 'Left of trigger', 'Right of trigger'];
+    currentPlacementLabel = 'Resolving...';
 
     windowOptions: WindowOptions = {
         visibility: {
@@ -89,5 +91,9 @@ export class AdaptivePositioningPageComponent {
 
         this.reference.nativeElement.style.left = `${this._offset[0] + (event.x - this._coordinates[0])}px`;
         this.reference.nativeElement.style.top = `${this._offset[1] + (event.y - this._coordinates[1])}px`;
+    }
+
+    onPlacementChange(placement: ResolvedWindowPlacement) {
+        this.currentPlacementLabel = this.placementLabels[placement.placementIndex] ?? `Placement ${placement.placementIndex}`;
     }
 }

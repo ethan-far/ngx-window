@@ -63,6 +63,38 @@ describe('WindowPlacementService', () => {
         expect(offset).toEqual({ top: 448, left: 500 });
     });
 
+    it('reports primary placement metadata when the primary placement fits', () => {
+        const placement = service.resolvePlacement({
+            alignment: {
+                reference: { vertical: 'bottom' }
+            },
+            adaptivePlacements: [
+                {
+                    alignment: {
+                        reference: { vertical: 'top' },
+                        window: { vertical: 'bottom' }
+                    }
+                }
+            ],
+            height: 200,
+            leftOffset: 0,
+            referencePosition,
+            topOffset: 8,
+            width: 250
+        });
+
+        expect(placement).toEqual({
+            offset: { top: 448, left: 500 },
+            placementIndex: 0,
+            source: 'primary',
+            alignment: {
+                reference: { vertical: 'bottom' }
+            },
+            topOffset: 8,
+            leftOffset: 0
+        });
+    });
+
     it('selects the first fallback placement that fits in the viewport', () => {
         const offset = service.resolve({
             alignment: {
@@ -84,6 +116,39 @@ describe('WindowPlacementService', () => {
         });
 
         expect(offset).toEqual({ top: 338, left: 500 });
+    });
+
+    it('reports fallback placement metadata when an adaptive placement is selected', () => {
+        const placement = service.resolvePlacement({
+            alignment: {
+                reference: { vertical: 'bottom' }
+            },
+            adaptivePlacements: [
+                {
+                    alignment: {
+                        reference: { vertical: 'top' },
+                        window: { vertical: 'bottom' }
+                    }
+                }
+            ],
+            height: 350,
+            leftOffset: 0,
+            referencePosition: { ...referencePosition, top: 700 },
+            topOffset: 12,
+            width: 250
+        });
+
+        expect(placement).toEqual({
+            offset: { top: 338, left: 500 },
+            placementIndex: 1,
+            source: 'adaptive',
+            alignment: {
+                reference: { vertical: 'top' },
+                window: { vertical: 'bottom' }
+            },
+            topOffset: -12,
+            leftOffset: 0
+        });
     });
 
     it('mirrors inherited offsets when the placement flips to the opposite side', () => {
@@ -155,6 +220,39 @@ describe('WindowPlacementService', () => {
         });
 
         expect(offset).toEqual({ top: 804, left: 596 });
+    });
+
+    it('reports the least-overflowing candidate metadata when no placement fits fully', () => {
+        const placement = service.resolvePlacement({
+            alignment: {
+                reference: { horizontal: 'right', vertical: 'bottom' }
+            },
+            adaptivePlacements: [
+                {
+                    alignment: {
+                        reference: { horizontal: 'left', vertical: 'bottom' },
+                        window: { horizontal: 'right' }
+                    }
+                }
+            ],
+            height: 500,
+            leftOffset: 24,
+            referencePosition: { top: 700, left: 1120, width: 80, height: 80 },
+            topOffset: 24,
+            width: 500
+        });
+
+        expect(placement).toEqual({
+            offset: { top: 804, left: 596 },
+            placementIndex: 1,
+            source: 'adaptive',
+            alignment: {
+                reference: { horizontal: 'left', vertical: 'bottom' },
+                window: { horizontal: 'right' }
+            },
+            topOffset: 24,
+            leftOffset: -24
+        });
     });
 
     it('takes viewport padding into account when evaluating fit', () => {

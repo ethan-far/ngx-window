@@ -1,9 +1,9 @@
-import { AfterContentChecked, ChangeDetectorRef, Component, ElementRef, EventEmitter, HostListener, Input, NgZone, OnDestroy, OnInit, Output, TemplateRef, ViewChild } from '@angular/core';
+import { AfterContentChecked, AfterRenderRef, ChangeDetectorRef, Component, ElementRef, EventEmitter, HostListener, Inject, Injector, Input, NgZone, OnDestroy, OnInit, Output, TemplateRef, ViewChild, afterNextRender } from '@angular/core';
 import { filter, map, mergeWith, Subscription, tap } from 'rxjs';
 import { ElementPositionService } from './element-position.service';
 import { WindowService } from './window.service';
 import { WindowPlacementService } from './window-placement.service';
-import { Offset, WindowOptions } from './window.types';
+import { ResolvedWindowPlacement, WindowOptions } from './window.types';
 
 @Component({
     selector: 'ngx-window',
@@ -24,10 +24,13 @@ export class WindowComponent implements OnInit, AfterContentChecked, OnDestroy {
     @Input() refElement?: HTMLElement;
 
     @Output() visibleChange = new EventEmitter<boolean>();
+    @Output() placementChange = new EventEmitter<ResolvedWindowPlacement>();
 
     private _openSubscription?: Subscription;
     private _moveSubscription?: Subscription;
 
+    private _lastEmittedPlacement?: ResolvedWindowPlacement;
+    private _placementSyncRef?: AfterRenderRef;
     private _openedAtLeastOnce: boolean = false;
     private _measuredHeight?: number;
     private _measuredWidth?: number;
@@ -38,11 +41,11 @@ export class WindowComponent implements OnInit, AfterContentChecked, OnDestroy {
     get id() { return this._id; }
 
     get top() {
-        return this.round(this.resolveOffset().top);
+        return this.round(this.resolvePlacement().offset.top);
     }
 
     get left() {
-        return this.round(this.resolveOffset().left);
+        return this.round(this.resolvePlacement().offset.left);
     }
 
     get visibility() {
@@ -51,7 +54,8 @@ export class WindowComponent implements OnInit, AfterContentChecked, OnDestroy {
 
     constructor(private windowService: WindowService, private elementPositionService: ElementPositionService,
         private windowPlacementService: WindowPlacementService, private elementRef: ElementRef,
-        private changeDetectorRef: ChangeDetectorRef, private ngZone: NgZone) { }
+        private changeDetectorRef: ChangeDetectorRef, private ngZone: NgZone,
+        @Inject(Injector) private injector: Injector) { }
 
     ngOnInit() {
         this._id = this.windowService.registerWindow(this.elementRef, this.refElement, this.options.visibility?.keepOpen);
@@ -77,6 +81,7 @@ export class WindowComponent implements OnInit, AfterContentChecked, OnDestroy {
             if (this.windowService.isOpen(this._id!)) {
                 this.ngZone.run(() => {
                     this.measureWindow();
+                    this.emitPlacementChangeIfNeeded();
                     this.changeDetectorRef.detectChanges();
                 });
             }
@@ -87,11 +92,16 @@ export class WindowComponent implements OnInit, AfterContentChecked, OnDestroy {
         if (this.options.visibility?.startOpen && !this._openedAtLeastOnce) {
             this.open();
         }
+
+        if (this._openedAtLeastOnce && this._id !== undefined && this.windowService.isOpen(this._id)) {
+            this.queuePlacementChangeSync();
+        }
     }
 
     ngOnDestroy() {
         this._openSubscription?.unsubscribe();
         this._moveSubscription?.unsubscribe();
+        this.clearPlacementChangeSync();
         this.disconnectWindowResizeObserver();
     }
 
@@ -99,6 +109,7 @@ export class WindowComponent implements OnInit, AfterContentChecked, OnDestroy {
     onWindowResize() {
         if (this.windowService.isOpen(this._id!)) {
             this.measureWindow();
+            this.emitPlacementChangeIfNeeded();
             this.changeDetectorRef.detectChanges();
         }
     }
@@ -128,16 +139,19 @@ export class WindowComponent implements OnInit, AfterContentChecked, OnDestroy {
     private onWindowOpened() {
         this.measureWindow();
         this.startWindowResizeObserver();
+        this.queuePlacementChangeSync();
         this.changeDetectorRef.detectChanges();
     }
 
     private onWindowClosed() {
         this._measureOnOpen = false;
+        this._lastEmittedPlacement = undefined;
+        this.clearPlacementChangeSync();
         this.disconnectWindowResizeObserver();
     }
 
-    private resolveOffset(): Offset {
-        return this.windowPlacementService.resolve({
+    private resolvePlacement(): ResolvedWindowPlacement {
+        return this.windowPlacementService.resolvePlacement({
             alignment: this.options.alignment,
             adaptivePlacements: this.options.adaptivePosition?.placements,
             height: this.height ?? this._measuredHeight ?? 0,
@@ -147,6 +161,53 @@ export class WindowComponent implements OnInit, AfterContentChecked, OnDestroy {
             viewportPadding: this.options.adaptivePosition?.viewportPadding,
             width: this.width ?? this._measuredWidth ?? 0
         });
+    }
+
+    private emitPlacementChangeIfNeeded() {
+        const placement = this.resolvePlacement();
+
+        if (this.samePlacement(this._lastEmittedPlacement, placement)) {
+            return;
+        }
+
+        this._lastEmittedPlacement = placement;
+        this.placementChange.emit(placement);
+    }
+
+    private queuePlacementChangeSync() {
+        if (this._placementSyncRef) {
+            return;
+        }
+
+        this._placementSyncRef = afterNextRender(() => {
+            this._placementSyncRef = undefined;
+
+            if (this._id === undefined || !this.windowService.isOpen(this._id)) {
+                return;
+            }
+
+            this.emitPlacementChangeIfNeeded();
+        }, {
+            injector: this.injector
+        });
+    }
+
+    private clearPlacementChangeSync() {
+        if (this._placementSyncRef) {
+            this._placementSyncRef.destroy();
+            this._placementSyncRef = undefined;
+        }
+    }
+
+    private samePlacement(left?: ResolvedWindowPlacement, right?: ResolvedWindowPlacement): boolean {
+        return left?.placementIndex === right?.placementIndex
+            && left?.source === right?.source
+            && left?.topOffset === right?.topOffset
+            && left?.leftOffset === right?.leftOffset
+            && left?.alignment?.window?.horizontal === right?.alignment?.window?.horizontal
+            && left?.alignment?.window?.vertical === right?.alignment?.window?.vertical
+            && left?.alignment?.reference?.horizontal === right?.alignment?.reference?.horizontal
+            && left?.alignment?.reference?.vertical === right?.alignment?.reference?.vertical;
     }
 
     private round(value: number) {
@@ -191,6 +252,7 @@ export class WindowComponent implements OnInit, AfterContentChecked, OnDestroy {
         this._windowResizeObserver = new ResizeObserver(() => {
             this.ngZone.run(() => {
                 this.measureWindow();
+                this.emitPlacementChangeIfNeeded();
                 this.changeDetectorRef.detectChanges();
             });
         });

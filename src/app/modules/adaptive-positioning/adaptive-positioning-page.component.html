@@ -6,6 +6,9 @@
             The demo window starts below the reference element, flips above when vertical space runs out,
             and then falls back to the left or right when the viewport edges get tight.
         </p>
+        <p class="placement-status">
+            Active placement: <strong>{{ currentPlacementLabel }}</strong>
+        </p>
     </section>
 
     <div class="stage">
@@ -13,7 +16,8 @@
             Drag me
         </div>
 
-        <ngx-window class="adaptive-window" [refElement]="reference" [topOffset]="14" [leftOffset]="12" [options]="windowOptions">
+        <ngx-window class="adaptive-window" [refElement]="reference" [topOffset]="14" [leftOffset]="12"
+            [options]="windowOptions" (placementChange)="onPlacementChange($event)">
             <div class="adaptive-window-content">
                 <p class="window-kicker">Live demo</p>
                 <h3>Viewport-aware fallback</h3>

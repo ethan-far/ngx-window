@@ -2,7 +2,7 @@ import { DebugElement } from '@angular/core';
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { MockComponent } from 'ng-mocks';
-import { WindowComponent } from '../../../../projects/ngx-window/src/public-api';
+import { ResolvedWindowPlacement, WindowComponent } from '../../../../projects/ngx-window/src/public-api';
 import { AdaptivePositioningPageComponent } from './adaptive-positioning-page.component';
 
 describe('AdaptivePositioningPageComponent', () => {
@@ -89,6 +89,36 @@ describe('AdaptivePositioningPageComponent', () => {
                 }
             ]
         });
+    });
+
+    it('renders the current placement label', () => {
+        fixture.detectChanges();
+
+        const statusElement = element.query(By.css('.placement-status'));
+
+        expect(statusElement.nativeElement.textContent).toContain('Resolving...');
+    });
+
+    it('updates the placement label when the window reports a different active placement', () => {
+        fixture.detectChanges();
+
+        const windowComponent = element.query(By.css('ngx-window.adaptive-window')).componentInstance as WindowComponent;
+        windowComponent.placementChange.emit({
+            offset: { top: 0, left: 0 },
+            placementIndex: 2,
+            source: 'adaptive',
+            alignment: {
+                reference: { vertical: 'center' },
+                window: { horizontal: 'right', vertical: 'center' }
+            },
+            topOffset: 0,
+            leftOffset: -18
+        } as ResolvedWindowPlacement);
+        fixture.detectChanges();
+
+        const statusElement = element.query(By.css('.placement-status'));
+
+        expect(statusElement.nativeElement.textContent).toContain('Left of trigger');
     });
 
     it('updates the reference element position while dragging', () => {

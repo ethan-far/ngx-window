@@ -1,3 +1,8 @@
+## [0.5.1](https://github.com/ethan-far/ngx-window/compare/v0.5.0...v0.5.1) (2026-05-01)
+
+* Added `placementChange` to expose the resolved adaptive placement to consumers
+* Added resolved placement metadata and a live placement indicator to the adaptive positioning demo
+
 ## [0.5.0](https://github.com/ethan-far/ngx-window/compare/v0.4.0...v0.5.0) (2026-05-01)
 
 * Added opt-in adaptive viewport positioning with ordered fallback placements

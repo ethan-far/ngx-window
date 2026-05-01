@@ -4,6 +4,7 @@ import { By } from '@angular/platform-browser';
 import { Subject } from 'rxjs';
 import { mock } from 'ts-mockito';
 import { ElementPositionService } from './element-position.service';
+import { ResolvedWindowPlacement } from './window.types';
 
 import { WindowComponent } from './window.component';
 import { WindowPlacementService } from './window-placement.service';
@@ -35,6 +36,7 @@ describe('WindowComponent', () => {
     let fixture: ComponentFixture<TestHostComponent>;
     let component: TestHostComponent;
     let element: DebugElement;
+    let currentPlacement: ResolvedWindowPlacement;
 
     beforeEach(waitForAsync(() => {
         originalResizeObserver = window.ResizeObserver;
@@ -60,7 +62,10 @@ describe('WindowComponent', () => {
         jest.spyOn(elementPositionServiceMock, 'getPosition').mockReturnValue({
             top: 200, left: 100, width: 400, height: 300
         });
-        jest.spyOn(windowPlacementServiceMock, 'resolve').mockReturnValue({ top: 123, left: 456 });
+        currentPlacement = placement({ top: 123, left: 456 });
+        jest.spyOn(windowPlacementServiceMock, 'resolvePlacement').mockImplementation(() => currentPlacement);
+        jest.spyOn(windowPlacementServiceMock, 'resolve').mockImplementation((request) =>
+            (windowPlacementServiceMock.resolvePlacement as any)(request).offset);
 
         TestBed.configureTestingModule({
             declarations: [
@@ -227,6 +232,120 @@ describe('WindowComponent', () => {
         });
     });
 
+    describe('notifies of placement', () => {
+        beforeEach(() => {
+            jest.spyOn(windowServiceMock, 'isOpen').mockReturnValue(true);
+            fixture.detectChanges();
+            component.window.open();
+        });
+
+        it('when the window is opened', async () => {
+            const placements: ResolvedWindowPlacement[] = [];
+            component.window.placementChange.subscribe((placement) => placements.push(placement));
+
+            windowServiceMock.windowOpened$.next(1234);
+            fixture.detectChanges();
+            await waitForTimer();
+
+            expect(placements).toEqual([placement({ top: 123, left: 456 })]);
+        });
+
+        it('when the active placement changes after opening', async () => {
+            const placements: ResolvedWindowPlacement[] = [];
+            component.window.placementChange.subscribe((placement) => placements.push(placement));
+
+            windowServiceMock.windowOpened$.next(1234);
+            fixture.detectChanges();
+            await waitForTimer();
+            currentPlacement = placement(
+                { top: 222, left: 333 },
+                1,
+                'adaptive',
+                {
+                    reference: { vertical: 'top' },
+                    window: { vertical: 'bottom' }
+                },
+                -12,
+                0
+            );
+
+            windowServiceMock.windowMoved$.next(1234);
+            fixture.detectChanges();
+
+            expect(placements).toEqual([
+                placement({ top: 123, left: 456 }),
+                placement(
+                    { top: 222, left: 333 },
+                    1,
+                    'adaptive',
+                    {
+                        reference: { vertical: 'top' },
+                        window: { vertical: 'bottom' }
+                    },
+                    -12,
+                    0
+                )
+            ]);
+        });
+
+        it('does not notify again when only the pixel offset changes within the same placement', async () => {
+            const placements: ResolvedWindowPlacement[] = [];
+            component.window.placementChange.subscribe((placement) => placements.push(placement));
+
+            windowServiceMock.windowOpened$.next(1234);
+            fixture.detectChanges();
+            await waitForTimer();
+            currentPlacement = placement({ top: 200, left: 300 });
+
+            windowServiceMock.windowMoved$.next(1234);
+            fixture.detectChanges();
+
+            expect(placements).toEqual([placement({ top: 123, left: 456 })]);
+        });
+
+        it('syncs placement changes during change detection even without a move event', async () => {
+            const placements: ResolvedWindowPlacement[] = [];
+            component.window.placementChange.subscribe((placement) => placements.push(placement));
+
+            windowServiceMock.windowOpened$.next(1234);
+            fixture.detectChanges();
+            await waitForTimer();
+            fixture.detectChanges();
+            await waitForTimer();
+
+            currentPlacement = placement(
+                { top: 222, left: 333 },
+                1,
+                'adaptive',
+                {
+                    reference: { vertical: 'top' },
+                    window: { vertical: 'bottom' }
+                },
+                -12,
+                0
+            );
+
+            component.window.ngAfterContentChecked();
+            fixture.detectChanges();
+            await waitForTimer();
+
+            expect(placements).toEqual([
+                placement({ top: 123, left: 456 }),
+                placement(
+                    { top: 222, left: 333 },
+                    1,
+                    'adaptive',
+                    {
+                        reference: { vertical: 'top' },
+                        window: { vertical: 'bottom' }
+                    },
+                    -12,
+                    0
+                )
+            ]);
+        });
+    });
+
     describe('"open"', () => {
         it('opens the window using the service', () => {
             fixture.detectChanges();
@@ -325,7 +444,7 @@ describe('WindowComponent', () => {
 
                     let divElement = element.query(By.css('.window'));
 
-                    expect(windowPlacementServiceMock.resolve).toHaveBeenCalledWith({
+                    expect(windowPlacementServiceMock.resolvePlacement).toHaveBeenCalledWith({
                         alignment: {
                             window: { horizontal: 'left', vertical: 'center' },
                             reference: { horizontal: 'right', vertical: 'bottom' }
@@ -343,7 +462,7 @@ describe('WindowComponent', () => {
                 });
 
                 it('rounded to the nearest pixel 100th', () => {
-                    jest.spyOn(windowPlacementServiceMock, 'resolve').mockReturnValue({ top: 250.002, left: 200.007 });
+                    currentPlacement = placement({ top: 250.002, left: 200.007 });
                     fixture.detectChanges();
 
                     let divElement = element.query(By.css('.window'));
@@ -388,7 +507,7 @@ describe('WindowComponent', () => {
             windowServiceMock.windowOpened$.next(1234);
             fixture.detectChanges();
 
-            expect(windowPlacementServiceMock.resolve).toHaveBeenCalledWith({
+            expect(windowPlacementServiceMock.resolvePlacement).toHaveBeenCalledWith({
                 alignment: undefined,
                 adaptivePlacements: undefined,
                 height: 240,
@@ -441,7 +560,7 @@ describe('WindowComponent', () => {
 
             expect(measureSpy).toHaveBeenCalled();
             expect(detectChangesSpy).toHaveBeenCalled();
-            expect(windowPlacementServiceMock.resolve).toHaveBeenCalledWith({
+            expect(windowPlacementServiceMock.resolvePlacement).toHaveBeenCalledWith({
                 alignment: undefined,
                 adaptivePlacements: undefined,
                 height: 280,
@@ -493,7 +612,7 @@ describe('WindowComponent', () => {
 @Component({
     template: `    
         <ngx-window [width]="width" [height]="height" [topOffset]="135" [leftOffset]="246"
-            (visibleChange)="windowVisible=$event" #window>
+            (visibleChange)="windowVisible=$event" (placementChange)="placementChanges.push($event)" #window>
             <p class="transclusion-test">test content</p>
         </ngx-window>
         <div #container class="TESKTJSLEKJWLEKTJWELKT"> 
@@ -508,10 +627,33 @@ class TestHostComponent implements OnInit {
     width: number | undefined = 123;
     height: number | undefined = 456;
     windowVisible?: boolean;
+    placementChanges: ResolvedWindowPlacement[] = [];
 
     constructor(private windowService: WindowService) { }
 
     ngOnInit() {
         this.windowService.registerContainer(this.container);
     }
+}
+
+function placement(
+    offset: { top: number, left: number },
+    placementIndex: number = 0,
+    source: 'primary' | 'adaptive' = 'primary',
+    alignment: ResolvedWindowPlacement['alignment'] = undefined,
+    topOffset: number = 135,
+    leftOffset: number = 246
+): ResolvedWindowPlacement {
+    return {
+        offset,
+        placementIndex,
+        source,
+        alignment,
+        topOffset,
+        leftOffset
+    };
+}
+
+function waitForTimer() {
+    return new Promise((resolve) => setTimeout(resolve, 0));
 }
