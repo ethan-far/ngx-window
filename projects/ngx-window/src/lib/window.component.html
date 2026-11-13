@@ -1,6 +1,7 @@
-<ng-template #template>
+<ng-template #template let-measuring="measuring">
     <div class="window" [attr.data-window-id]="id" [style.width.px]="width" [style.height.px]="height"
-        [style.top.px]="top" [style.left.px]="left" [style.visibility]="visibility">
+        [style.top.px]="top" [style.left.px]="left" [style.visibility]="measuring ? 'hidden' : visibility"
+        [attr.inert]="measuring ? '' : null" [attr.aria-hidden]="measuring ? 'true' : null">
         <ng-content windowContent></ng-content>
     </div>
 </ng-template>

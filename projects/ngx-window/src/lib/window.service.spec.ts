@@ -1,6 +1,6 @@
 import { ElementRef, EmbeddedViewRef, TemplateRef, ViewContainerRef, ViewRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { Router } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { mock } from 'ts-mockito';
 
@@ -110,6 +110,106 @@ describe('WindowService', () => {
             windowService.open(id, templateMock);
 
             expect(windowService.getWindowElement(id)).toBe(renderedElement);
+        });
+    });
+
+    describe('measure', () => {
+        let renderedElement: HTMLElement;
+        let id: number;
+
+        beforeEach(() => {
+            renderedElement = document.createElement('section');
+            Object.defineProperty(viewMock1, 'rootNodes', { value: [renderedElement] });
+            viewMock1.detectChanges = jest.fn();
+            viewMock1.destroy = jest.fn();
+            windowService.registerContainer(containerMock);
+            id = windowService.registerWindow(windowRef, windowRefElement);
+        });
+
+        it('renders a measurement view and checks its bindings before reading', () => {
+            const result = windowService.measure(id, templateMock, element => {
+                expect(viewMock1.detectChanges).toHaveBeenCalled();
+                return element.tagName;
+            });
+
+            expect(result).toBe('SECTION');
+            expect(containerMock.createEmbeddedView).toHaveBeenCalledWith(templateMock, { measuring: true });
+            expect(containerMock.remove).toHaveBeenCalledWith(123);
+        });
+
+        it('keeps the window closed without emitting window events', () => {
+            const opened = jest.fn();
+            const closed = jest.fn();
+            windowService.windowOpened$.subscribe(opened);
+            windowService.windowClosed$.subscribe(closed);
+
+            windowService.measure(id, templateMock, () => undefined);
+
+            expect(windowService.isOpen(id)).toBe(false);
+            expect(windowService.getWindowElement(id)).toBeUndefined();
+            expect(opened).not.toHaveBeenCalled();
+            expect(closed).not.toHaveBeenCalled();
+        });
+
+        it('measures an open window without creating or removing its view', () => {
+            windowService.open(id, templateMock);
+            jest.mocked(containerMock.createEmbeddedView).mockClear();
+
+            const result = windowService.measure(id, templateMock, element => element);
+
+            expect(result).toBe(renderedElement);
+            expect(windowService.isOpen(id)).toBe(true);
+            expect(containerMock.createEmbeddedView).not.toHaveBeenCalled();
+            expect(containerMock.remove).not.toHaveBeenCalled();
+        });
+
+        it('removes the temporary view even if reading throws', () => {
+            expect(() => windowService.measure(id, templateMock, () => { throw new Error('Read failed'); })).toThrow('Read failed');
+
+            expect(containerMock.remove).toHaveBeenCalledWith(123);
+            expect(windowService.isOpen(id)).toBe(false);
+        });
+
+        it('removes the temporary view even if rendering throws', () => {
+            jest.mocked(viewMock1.detectChanges).mockImplementation(() => { throw new Error('Render failed'); });
+
+            expect(() => windowService.measure(id, templateMock, () => undefined)).toThrow('Render failed');
+
+            expect(containerMock.remove).toHaveBeenCalledWith(123);
+        });
+
+        it('rejects templates without an HTML root and cleans up their view', () => {
+            Object.defineProperty(viewMock2, 'rootNodes', { value: [document.createTextNode('text')] });
+            viewMock2.detectChanges = jest.fn();
+            jest.mocked(containerMock.createEmbeddedView).mockReset().mockReturnValue(viewMock2);
+
+            expect(() => windowService.measure(id, templateMock, () => undefined)).toThrow('did not render an HTML element');
+
+            expect(containerMock.remove).toHaveBeenCalledWith(456);
+        });
+
+        it('destroys a temporary view that was detached while being measured', () => {
+            jest.mocked(containerMock.indexOf).mockReturnValue(-1);
+
+            windowService.measure(id, templateMock, () => undefined);
+
+            expect(viewMock1.destroy).toHaveBeenCalled();
+            expect(containerMock.remove).not.toHaveBeenCalled();
+        });
+
+        it('rejects an unregistered window', () => {
+            expect(() => windowService.measure(9999, templateMock, () => undefined)).toThrow('must be registered');
+
+            expect(containerMock.createEmbeddedView).not.toHaveBeenCalled();
+        });
+
+        it('rejects measurement when there is no window container', () => {
+            TestBed.resetTestingModule();
+            TestBed.configureTestingModule({ providers: [provideRouter([]), WindowService] });
+            const service = TestBed.inject(WindowService);
+            const uncontainedId = service.registerWindow(windowRef);
+
+            expect(() => service.measure(uncontainedId, templateMock, () => undefined)).toThrow('must be registered');
         });
     });
 
