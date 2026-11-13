@@ -66,7 +66,8 @@ Before you submit your Pull Request (PR) consider the following guidelines:
 
 - Document new public APIs, return types, errors, and usage examples in the root `README.md`.
 - Run `npm run sync:readme` to copy the root README into `projects/ngx-window/README.md`. The library build runs this step automatically; keep both copies identical in the PR.
-- Add user-facing changes to the `Unreleased` section of `CHANGELOG.md`. Release versions and dates can be assigned when preparing a release.
+- Add user-facing changes to the `Unreleased` section of `CHANGELOG.md` while work is in progress. For a change intended for publication, include its version bump in the PR: update the root and library `package.json`, both root version fields in `package-lock.json`, the README compatibility table, and a dated changelog entry together.
+- Before publishing, verify that `npm run build:lib` produces the intended version in `dist/ngx-window/package.json` and inspect the package with `npm pack ./dist/ngx-window --dry-run`.
 - Add or update the relevant demo. When its visible UI changes, refresh the corresponding PNG in `docs/screenshots` and verify that README image links still point to the right files.
 - For viewport-dependent changes, check desktop, portrait, and short landscape layouts. Include cases where the primary placement fits, a fallback fits, and no configured placement fits.
 

@@ -1,4 +1,4 @@
-## Unreleased
+## [0.5.2](https://github.com/ethan-far/ngx-window/compare/v0.5.1...v0.5.2) (2026-11-13)
 
 * Added `getBestFit()` to measure current window content before opening and report the best placement with `fitsViewport`
 * Fit checks measure automatic dimensions without opening the window or changing its visibility; pending checks reject with `AbortError` on close or destroy
