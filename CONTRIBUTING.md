@@ -73,6 +73,24 @@ Before you submit your Pull Request (PR) consider the following guidelines:
 
 For `getBestFit()` changes, also check that measuring a closed window leaves it closed, temporary content is removed, an already open window retains its content, and pending checks cancel on close or destroy.
 
+### Automatic npm publication
+
+Merging into `main` in `ethan-far/ngx-window` runs CI on Node.js 20, 22, and 24. After every build and coverage check passes, the `publish` job downloads the library artifact built and tested on Node.js 24 and checks its version against the public npm registry. Pull requests and fork pushes never publish.
+
+The job verifies that the root, library, lockfile, and built package versions agree. An already published version is skipped, so documentation-only merges and successful workflow reruns do not republish it. Registry and network errors fail the job instead of being treated as a missing version. Stable versions use the `latest` dist-tag; prerelease versions use `next`. Publish jobs are serialized to avoid duplicate publication attempts.
+
+Publishing uses [npm trusted publishing](https://docs.npmjs.com/trusted-publishers/) through GitHub Actions OIDC, with no `NPM_TOKEN` secret. Before the first automatic publish, a package maintainer must add a GitHub Actions trusted publisher in the npm settings for `ngx-window-component`:
+
+| Setting | Value |
+| ------- | ----- |
+| Organization or user | `ethan-far` |
+| Repository | `ngx-window` |
+| Workflow filename | `ci.yml` |
+| Environment name | Leave empty |
+| Allowed action | Enable **Allow npm publish** |
+
+The workflow grants `id-token: write` only to the publishing job and uses Node.js 24 with npm 11. The package's `repository` metadata points to the canonical repository so npm can generate provenance. If authentication fails because this one-time setup is missing, configure the trusted publisher and rerun the failed publish job from GitHub Actions. Do not add a second manual publish for the same version.
+
 ## <a name="rules"></a> Coding Rules
 To ensure consistency throughout the source code, keep these rules in mind as you are working:
 

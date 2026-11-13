@@ -3,6 +3,11 @@
   "description": "Lightweight window layer component for Angular",
   "version": "0.5.2",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ethan-far/ngx-window.git",
+    "directory": "projects/ngx-window"
+  },
   "homepage": "https://github.com/ethan-far/ngx-window",
   "bugs": {
     "url": "https://github.com/ethan-far/ngx-window/issues",
