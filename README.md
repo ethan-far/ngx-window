@@ -23,6 +23,7 @@ A generic, light weight, window layer component for Angular 2+ to allow front la
     - Reference element scroll (or container)
     - Window resize
 - Fires events when the window becomes visible/invisible and when adaptive placement changes
+- Checks which placement fits the viewport before opening, including windows sized by their content
 
 # Dependencies
 
@@ -110,11 +111,46 @@ export type VerticalAnchor = 'top' | 'center' | 'bottom';
 
 # Functions
 
-| Function | Parameters | Description                                      |
-| -------- | ---------- | ------------------------------------------------ |
-| Open     | *none*     | Opens (shows) the window                         |
-| Close    | *none*     | Closes (hides) the window                        |
-| Toggle   | *none*     | Opens the window if closed, or closes it if open |
+| Function     | Parameters | Returns                  | Description                                                   |
+| ------------ | ---------- | ------------------------ | ------------------------------------------------------------- |
+| `open`       | *none*     | `void`                   | Opens (shows) the window                                       |
+| `close`      | *none*     | `void`                   | Closes (hides) the window and cancels pending fit checks         |
+| `toggle`     | *none*     | `void`                   | Opens the window if closed, or closes it if open                |
+| `getBestFit`  | *none*     | `Promise<WindowBestFit>` | Measures the current content and reports the best viewport fit  |
+
+## Checking fit before opening
+
+`getBestFit()` waits until the next Angular render so input and content changes are applied. Automatically sized windows are measured in a temporary, invisible, noninteractive view in the window container. An already open window is measured in place. A closed window stays closed without visibility or placement events. An open window retains its rendered content and continues its normal placement notifications.
+
+The result contains the same placement metadata as `ResolvedWindowPlacement`, plus `fitsViewport`. The primary placement is preferred, followed by the first configured fallback that fits within the viewport padding. When no placement fits, the result describes the least-overflowing placement and `fitsViewport` is `false`.
+
+```typescript
+try {
+    const fit = await this.popup.getBestFit();
+
+    if (fit.fitsViewport) {
+        this.popup.open();
+    }
+} catch (error) {
+    if (!(error instanceof DOMException && error.name === 'AbortError')) {
+        throw error;
+    }
+}
+```
+
+When `fitsViewport` is `false`, the application can make room for the popup, for example by panning its map, before calling the existing `open()` method. Opening resolves the placement again using the updated reference position. Results are snapshots; call `getBestFit()` again after content, reference, or viewport changes when another fit decision is needed.
+
+Pending measurements reject with an `AbortError` when the window is closed or destroyed. Measurement also rejects if the window is not initialized, if automatic sizing needs an unavailable container, or if rendering fails. A temporary measurement view is always removed before the promise settles. Fit checks use the current layout and do not wait for future image, font, or data loads; check again if those later change the content size.
+
+The adaptive positioning demo includes **Close and check fit** and **Open window** controls so you can inspect the result before revealing the popup.
+
+![Closed-window viewport fit check](https://raw.githubusercontent.com/ethan-far/ngx-window/main/docs/screenshots/window-fit-check.png)
+
+```typescript
+export interface WindowBestFit extends ResolvedWindowPlacement {
+    fitsViewport: boolean;
+}
+```
 
 # Events
 
@@ -135,6 +171,6 @@ export interface ResolvedWindowPlacement {
 ```
 
 
-[contrib]: https://github.com/ethan-far/ngx-window/CONTRIBUTING.md
+[contrib]: https://github.com/ethan-far/ngx-window/blob/main/CONTRIBUTING.md
 
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)

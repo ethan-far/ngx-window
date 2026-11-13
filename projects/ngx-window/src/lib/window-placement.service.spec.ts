@@ -25,6 +25,80 @@ describe('WindowPlacementService', () => {
         Object.defineProperty(window, 'scrollY', { value: 0, configurable: true });
     });
 
+    describe('getBestFit', () => {
+        it('reports a primary placement that fits without adaptive configuration', () => {
+            const result = service.getBestFit({ width: 300, height: 200, topOffset: 20, leftOffset: 20 });
+
+            expect(result).toEqual({
+                offset: { top: 20, left: 20 }, placementIndex: 0, source: 'primary',
+                alignment: undefined, topOffset: 20, leftOffset: 20, fitsViewport: true
+            });
+        });
+
+        it('reports a fitting fallback when the primary placement overflows', () => {
+            const result = service.getBestFit({
+                width: 300, height: 200, topOffset: 20, leftOffset: 20,
+                referencePosition: { top: 700, left: 500, width: 100, height: 40 },
+                alignment: { reference: { vertical: 'bottom' } },
+                adaptivePlacements: [{ alignment: { reference: { vertical: 'top' }, window: { vertical: 'bottom' } } }]
+            });
+
+            expect(result.fitsViewport).toBe(true);
+            expect(result.placementIndex).toBe(1);
+            expect(result.offset).toEqual({ top: 480, left: 520 });
+        });
+
+        it('reports the least-overflowing placement when none fits', () => {
+            const result = service.getBestFit({
+                width: 500, height: 500, topOffset: 24, leftOffset: 24,
+                referencePosition: { top: 700, left: 1120, width: 80, height: 80 },
+                alignment: { reference: { horizontal: 'right', vertical: 'bottom' } },
+                adaptivePlacements: [{ alignment: { reference: { horizontal: 'left', vertical: 'bottom' }, window: { horizontal: 'right' } } }]
+            });
+
+            expect(result.fitsViewport).toBe(false);
+            expect(result.placementIndex).toBe(1);
+            expect(result.offset).toEqual({ top: 804, left: 596 });
+        });
+
+        it.each([
+            [12, 12, 1176, 876, true],
+            [11, 12, 1176, 876, false],
+            [12, 11, 1176, 876, false],
+            [12, 12, 1177, 876, false],
+            [12, 12, 1176, 877, false],
+            [12, 12, 1200, 900, false]
+        ])('evaluates all viewport edges including exact padding boundaries (%s, %s, %s, %s)', (leftOffset, topOffset, width, height, fitsViewport) => {
+            const result = service.getBestFit({ width, height, topOffset, leftOffset, viewportPadding: 12 });
+
+            expect(result.fitsViewport).toBe(fitsViewport);
+        });
+
+        it('uses document coordinates when the page is scrolled', () => {
+            Object.defineProperty(window, 'scrollX', { value: 210, configurable: true });
+            Object.defineProperty(window, 'scrollY', { value: 160, configurable: true });
+
+            const result = service.getBestFit({
+                width: 300, height: 200, topOffset: 12, leftOffset: 12, viewportPadding: 12,
+                referencePosition: { top: 160, left: 210, width: 100, height: 100 }
+            });
+
+            expect(result.fitsViewport).toBe(true);
+            expect(result.offset).toEqual({ top: 172, left: 222 });
+        });
+
+        it('preserves configuration order when multiple placements fit', () => {
+            const result = service.getBestFit({
+                width: 100, height: 100, topOffset: 20, leftOffset: 20,
+                referencePosition,
+                adaptivePlacements: [{ leftOffset: 30 }, { leftOffset: 40 }]
+            });
+
+            expect(result.placementIndex).toBe(0);
+            expect(result.fitsViewport).toBe(true);
+        });
+    });
+
     it('returns the primary placement when adaptive positioning is omitted', () => {
         const offset = service.resolve({
             alignment: {

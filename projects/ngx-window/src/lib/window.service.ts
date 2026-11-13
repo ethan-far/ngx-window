@@ -121,6 +121,40 @@ export class WindowService implements OnDestroy {
         return view?.rootNodes.find(node => node instanceof HTMLElement);
     }
 
+    /** @internal Renders a temporary view in the window container without opening it. */
+    measure<T>(id: number, template: TemplateRef<any>, read: (element: HTMLElement) => T): T {
+        const openElement = this.getWindowElement(id);
+
+        if (openElement) {
+            return read(openElement);
+        }
+
+        if (!this._container || !this._windows[id]) {
+            throw new Error('The window and its container must be registered before measuring.');
+        }
+
+        const view = this._container.createEmbeddedView(template, { measuring: true });
+
+        try {
+            view.detectChanges();
+            const element = view.rootNodes.find(node => node instanceof HTMLElement);
+
+            if (!element) {
+                throw new Error('The window template did not render an HTML element.');
+            }
+
+            return read(element);
+        } finally {
+            const index = this._container.indexOf(view);
+
+            if (index >= 0) {
+                this._container.remove(index);
+            } else {
+                view.destroy();
+            }
+        }
+    }
+
     open(id: number, template: TemplateRef<any>) {
         if (this._container && !this.isOpen(id)) {
             const window = this._windows[id];

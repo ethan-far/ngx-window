@@ -55,6 +55,12 @@ export interface ResolvedWindowPlacement {
     leftOffset: number;
 }
 
+/** A snapshot of the best configured placement for the current window content. */
+export interface WindowBestFit extends ResolvedWindowPlacement {
+    /** Whether a configured placement fits inside the viewport, including its padding. */
+    fitsViewport: boolean;
+}
+
 export interface WindowOptions {
     visibility?: VisibilityOptions,
     alignment?: AlignmentOptions,

@@ -7,8 +7,13 @@
             and then falls back to the left or right when the viewport edges get tight.
         </p>
         <p class="placement-status">
-            Active placement: <strong>{{ currentPlacementLabel }}</strong>
+            Selected placement: <strong>{{ currentPlacementLabel }}</strong>
         </p>
+        <div class="fit-actions">
+            <button type="button" [disabled]="checkingFit" (click)="checkBestFit()">Close and check fit</button>
+            <button type="button" [disabled]="checkingFit" (click)="demoWindow.open()">Open window</button>
+        </div>
+        <p class="fit-status" role="status">{{ fitStatus }}</p>
     </section>
 
     <div class="stage">

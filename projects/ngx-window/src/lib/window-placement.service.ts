@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { AlignmentService } from './alignment.service';
-import { AdaptivePlacement, AlignmentOptions, Offset, Position, ResolvedWindowPlacement, ResolvedWindowPlacementSource } from './window.types';
+import { AdaptivePlacement, AlignmentOptions, Offset, Position, ResolvedWindowPlacement, ResolvedWindowPlacementSource, WindowBestFit } from './window.types';
 
 interface PlacementCandidate {
     placementIndex: number;
@@ -35,6 +35,16 @@ export class WindowPlacementService {
     }
 
     resolvePlacement(request: WindowPlacementRequest): ResolvedWindowPlacement {
+        return this.resolveBestCandidate(request).placement;
+    }
+
+    getBestFit(request: WindowPlacementRequest): WindowBestFit {
+        const candidate = this.resolveBestCandidate(request);
+
+        return { ...candidate.placement, fitsViewport: candidate.overflow === 0 };
+    }
+
+    private resolveBestCandidate(request: WindowPlacementRequest): ResolvedCandidate {
         const candidates = this.buildCandidates(request);
         let bestCandidate: ResolvedCandidate | undefined;
 
@@ -42,7 +52,7 @@ export class WindowPlacementService {
             const resolved = this.resolveCandidate(request, candidate);
 
             if (resolved.overflow === 0) {
-                return resolved.placement;
+                return resolved;
             }
 
             if (!bestCandidate || resolved.overflow < bestCandidate.overflow) {
@@ -50,14 +60,13 @@ export class WindowPlacementService {
             }
         }
 
-        return bestCandidate?.placement ?? {
-            offset: { top: request.topOffset, left: request.leftOffset },
+        return bestCandidate ?? this.resolveCandidate(request, {
             placementIndex: 0,
             source: 'primary',
             alignment: request.alignment,
             topOffset: request.topOffset,
             leftOffset: request.leftOffset
-        };
+        });
     }
 
     private buildCandidates(request: WindowPlacementRequest): PlacementCandidate[] {

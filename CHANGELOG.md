@@ -1,3 +1,9 @@
+## Unreleased
+
+* Added `getBestFit()` to measure current window content before opening and report the best placement with `fitsViewport`
+* Fit checks measure automatic dimensions without opening the window or changing its visibility; pending checks reject with `AbortError` on close or destroy
+* Added a closed-window fit check to the adaptive positioning demo and refreshed its documentation screenshots
+
 ## [0.5.1](https://github.com/ethan-far/ngx-window/compare/v0.5.0...v0.5.1) (2026-05-01)
 
 * Added `placementChange` to expose the resolved adaptive placement to consumers

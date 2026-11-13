@@ -53,14 +53,24 @@ Before you submit your Pull Request (PR) consider the following guidelines:
 
 ### Development
 
-1. run `npm install`
-2. run `npm run start`
-3. write tests & code in TS
-4. run `npm run test:coverage` which will ensure that you meet the required code coverage
-5. commit your changes
-6. push your changes
-7. create a PR with a link to the original issue
-8. wait till approved
+1. Run `npm ci` to install the locked dependencies.
+2. Run `npm run start` to try the demo application.
+3. Add or update colocated unit tests for the public behavior being changed.
+4. Run the same validation as CI: `npm run build`, `npm run build:lib`, and `npm run test:coverage`. All must pass. The coverage check requires at least 95% for statements, branches, functions, and lines. Append `-- --runInBand` to the test command when a single Jest process is needed.
+5. Update the documentation listed below and inspect the demo in a browser.
+6. Commit and push your changes to a feature branch.
+7. Open a PR against `main`, link the original issue when one exists, and include the validation commands and their results.
+8. Wait for review before merging.
+
+### Documentation checklist
+
+- Document new public APIs, return types, errors, and usage examples in the root `README.md`.
+- Run `npm run sync:readme` to copy the root README into `projects/ngx-window/README.md`. The library build runs this step automatically; keep both copies identical in the PR.
+- Add user-facing changes to the `Unreleased` section of `CHANGELOG.md`. Release versions and dates can be assigned when preparing a release.
+- Add or update the relevant demo. When its visible UI changes, refresh the corresponding PNG in `docs/screenshots` and verify that README image links still point to the right files.
+- For viewport-dependent changes, check desktop, portrait, and short landscape layouts. Include cases where the primary placement fits, a fallback fits, and no configured placement fits.
+
+For `getBestFit()` changes, also check that measuring a closed window leaves it closed, temporary content is removed, an already open window retains its content, and pending checks cancel on close or destroy.
 
 ## <a name="rules"></a> Coding Rules
 To ensure consistency throughout the source code, keep these rules in mind as you are working:
@@ -72,7 +82,7 @@ To ensure consistency throughout the source code, keep these rules in mind as yo
 * Create an example in the demo application that demonstrates your changes so people can see how your changes work
 
 
-[coc]: https://github.com/ethan-far/ngx-window/CODE_OF_CONDUCT.md
-[coding]: https://github.com/ethan-far/ngx-window/CODING_GUIDELINES.md
-[testing]: https://github.com/ethan-far/ngx-window/TESTING_GUIDELINES.md
+[coc]: CODE_OF_CONDUCT.md
+[coding]: CODING_GUIDELINES.md
+[testing]: TESTING_GUIDELINES.md
 [github]: https://github.com/ethan-far/ngx-window

@@ -1,5 +1,5 @@
-import { Component, ElementRef, ViewChild } from '@angular/core';
-import { ResolvedWindowPlacement, WindowOptions } from '../../../../projects/ngx-window/src/public-api';
+import { ChangeDetectorRef, Component, ElementRef, ViewChild } from '@angular/core';
+import { ResolvedWindowPlacement, WindowComponent, WindowOptions } from '../../../../projects/ngx-window/src/public-api';
 
 @Component({
     selector: 'ngx-test-adaptive-positioning-page',
@@ -9,11 +9,14 @@ import { ResolvedWindowPlacement, WindowOptions } from '../../../../projects/ngx
 })
 export class AdaptivePositioningPageComponent {
     @ViewChild('reference', { static: true }) reference!: ElementRef<HTMLElement>;
+    @ViewChild(WindowComponent) demoWindow!: WindowComponent;
 
     private _coordinates?: [number, number];
     private _offset?: [number, number];
     readonly placementLabels = ['Below trigger', 'Above trigger', 'Left of trigger', 'Right of trigger'];
     currentPlacementLabel = 'Resolving...';
+    fitStatus = 'Check the fit without showing the window.';
+    checkingFit = false;
 
     windowOptions: WindowOptions = {
         visibility: {
@@ -74,6 +77,26 @@ export class AdaptivePositioningPageComponent {
             ]
         }
     };
+
+    constructor(private changeDetectorRef: ChangeDetectorRef) {}
+
+    async checkBestFit(): Promise<void> {
+        this.demoWindow.close();
+        this.checkingFit = true;
+
+        try {
+            const fit = await this.demoWindow.getBestFit();
+            this.onPlacementChange(fit);
+            this.fitStatus = fit.fitsViewport
+                ? 'A placement fits within the viewport padding. The window is still closed.'
+                : 'No placement fits within the viewport padding. The window is still closed.';
+        } catch {
+            this.fitStatus = 'The fit check was cancelled or could not be completed.';
+        } finally {
+            this.checkingFit = false;
+            this.changeDetectorRef.markForCheck();
+        }
+    }
 
     onDragOver(event: DragEvent) {
         event.preventDefault();

@@ -137,3 +137,50 @@
     letter-spacing: 0.16em;
     color: rgb(167 214 255 / 0.9) !important;
 }
+
+.fit-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 18px;
+
+    button {
+        padding: 10px 14px;
+        border: 1px solid var(--color-border-strong);
+        border-radius: 12px;
+        background: var(--color-white);
+        color: var(--color-accent-strong);
+        font: inherit;
+        cursor: pointer;
+
+        &:disabled {
+            cursor: wait;
+            opacity: 0.6;
+        }
+    }
+}
+
+.fit-status {
+    margin: 12px 0 0;
+    color: var(--color-ink-soft);
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+@media (max-width: 600px) {
+    .fit-actions button {
+        flex: 1 1 auto;
+        font-size: min(1rem, 4dvw);
+    }
+
+    .fit-status {
+        font-size: min(1rem, 4dvw);
+    }
+}
+
+@media (orientation: landscape) and (max-height: 480px) {
+    .fit-actions button,
+    .fit-status {
+        font-size: min(1rem, 4dvh);
+    }
+}

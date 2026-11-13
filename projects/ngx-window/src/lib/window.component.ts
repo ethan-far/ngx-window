@@ -2,8 +2,8 @@ import { AfterContentChecked, AfterRenderRef, ChangeDetectorRef, Component, Elem
 import { filter, map, mergeWith, Subscription, tap } from 'rxjs';
 import { ElementPositionService } from './element-position.service';
 import { WindowService } from './window.service';
-import { WindowPlacementService } from './window-placement.service';
-import { ResolvedWindowPlacement, WindowOptions } from './window.types';
+import { WindowPlacementRequest, WindowPlacementService } from './window-placement.service';
+import { ResolvedWindowPlacement, WindowBestFit, WindowOptions } from './window.types';
 
 @Component({
     selector: 'ngx-window',
@@ -36,6 +36,9 @@ export class WindowComponent implements OnInit, AfterContentChecked, OnDestroy {
     private _measuredWidth?: number;
     private _measureOnOpen: boolean = false;
     private _windowResizeObserver?: ResizeObserver;
+
+    private _destroyed: boolean = false;
+    private _bestFitRequests = new Map<AfterRenderRef, (reason: Error) => void>();
 
     private _id?: number;
     get id() { return this._id; }
@@ -99,6 +102,8 @@ export class WindowComponent implements OnInit, AfterContentChecked, OnDestroy {
     }
 
     ngOnDestroy() {
+        this._destroyed = true;
+        this.cancelBestFitRequests();
         this._openSubscription?.unsubscribe();
         this._moveSubscription?.unsubscribe();
         this.clearPlacementChangeSync();
@@ -114,6 +119,50 @@ export class WindowComponent implements OnInit, AfterContentChecked, OnDestroy {
         }
     }
 
+    /**
+     * Measures the current content after the next render without changing the open state.
+     * Returns the first fitting placement, or the least-overflowing one with fitsViewport set to false.
+     * Pending checks reject with AbortError when the window is closed or destroyed.
+     */
+    getBestFit(): Promise<WindowBestFit> {
+        if (this._destroyed) {
+            return Promise.reject(new DOMException('The window has been destroyed.', 'AbortError'));
+        }
+
+        return new Promise((resolve, reject) => {
+            const renderRef = afterNextRender(() => {
+                this._bestFitRequests.delete(renderRef);
+
+                try {
+                    if (this._id === undefined) {
+                        throw new Error('The window must be initialized before measuring.');
+                    }
+
+                    let request = this.createPlacementRequest();
+
+                    if (this.width === undefined || this.height === undefined) {
+                        request = this.windowService.measure(this._id, this.template, element => {
+                            const rect = element.getBoundingClientRect();
+
+                            return {
+                                ...request,
+                                width: this.width ?? rect.width,
+                                height: this.height ?? rect.height
+                            };
+                        });
+                    }
+
+                    resolve(this.windowPlacementService.getBestFit(request));
+                } catch (error) {
+                    reject(error);
+                }
+            }, { injector: this.injector });
+
+            this._bestFitRequests.set(renderRef, reject);
+            this.changeDetectorRef.markForCheck();
+        });
+    }
+
     open() {
         this._measureOnOpen = this.width === undefined || this.height === undefined;
 
@@ -125,6 +174,7 @@ export class WindowComponent implements OnInit, AfterContentChecked, OnDestroy {
     }
 
     close() {
+        this.cancelBestFitRequests();
         this.windowService.close(this._id!);
     }
 
@@ -144,14 +194,28 @@ export class WindowComponent implements OnInit, AfterContentChecked, OnDestroy {
     }
 
     private onWindowClosed() {
+        this.cancelBestFitRequests();
         this._measureOnOpen = false;
         this._lastEmittedPlacement = undefined;
         this.clearPlacementChangeSync();
         this.disconnectWindowResizeObserver();
     }
 
+    private cancelBestFitRequests() {
+        for (const [renderRef, reject] of this._bestFitRequests) {
+            renderRef.destroy();
+            reject(new DOMException('Window measurement was cancelled.', 'AbortError'));
+        }
+
+        this._bestFitRequests.clear();
+    }
+
     private resolvePlacement(): ResolvedWindowPlacement {
-        return this.windowPlacementService.resolvePlacement({
+        return this.windowPlacementService.resolvePlacement(this.createPlacementRequest());
+    }
+
+    private createPlacementRequest(): WindowPlacementRequest {
+        return {
             alignment: this.options.alignment,
             adaptivePlacements: this.options.adaptivePosition?.placements,
             height: this.height ?? this._measuredHeight ?? 0,
@@ -160,7 +224,7 @@ export class WindowComponent implements OnInit, AfterContentChecked, OnDestroy {
             topOffset: this.topOffset,
             viewportPadding: this.options.adaptivePosition?.viewportPadding,
             width: this.width ?? this._measuredWidth ?? 0
-        });
+        };
     }
 
     private emitPlacementChangeIfNeeded() {
